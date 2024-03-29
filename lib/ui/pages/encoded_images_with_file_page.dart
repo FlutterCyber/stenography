@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../service/get_image_paths.dart';
+import '../../service/get_image_paths.dart';
 
 class EncodedImagesWithFilePage extends StatefulWidget {
   static const String id = "encoded_images_with_file_page";

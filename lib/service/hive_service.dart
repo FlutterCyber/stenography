@@ -2,6 +2,25 @@ import 'package:hive/hive.dart';
 
 class HiveService {
   static var box = Hive.box('aesKey');
+  static var languageBox = Hive.box("languageBox");
+
+  static storeLanguage(String selectedlanguage) async {
+    try {
+      await languageBox.put("languageBox", selectedlanguage);
+    } catch (e) {
+      print("Storing err is $e");
+    }
+  }
+
+  static String loadLanguage() {
+    var selectedlanguage = "";
+    try {
+      selectedlanguage = languageBox.get("languageBox");
+    } catch (e) {
+      print(e);
+    }
+    return selectedlanguage;
+  }
 
   static storeKey(String aesKey) async {
     try {

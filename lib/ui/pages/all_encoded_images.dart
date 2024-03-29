@@ -1,9 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
-import 'package:stenography/pages/encoded_images_with_message_page.dart';
-import 'package:stenography/pages/home_page.dart';
-
 import 'encoded_images_with_file_page.dart';
+import 'encoded_images_with_message_page.dart';
+import 'home_page.dart';
 
 class AllEncodedImages extends StatefulWidget {
   static const String id = "all_encoded_images";
@@ -34,7 +34,7 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
         title: const Text(
           "All Encoded Images",
           style: TextStyle(color: Colors.white),
-        ),
+        ).tr(),
         centerTitle: true,
       ),
       body: Scaffold(
@@ -101,7 +101,7 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
                                       : Colors.grey,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 18),
-                            )
+                            ).tr(),
                           ],
                         ),
                       ),
@@ -143,7 +143,7 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
                                 fontWeight: FontWeight.w500,
                                 fontSize: 18,
                               ),
-                            )
+                            ).tr()
                           ],
                         ),
                       ),

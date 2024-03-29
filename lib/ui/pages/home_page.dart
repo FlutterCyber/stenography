@@ -1,11 +1,13 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
-import 'package:stenography/pages/all_encoded_images.dart';
-import 'package:stenography/views/decode_view.dart';
-import 'package:stenography/views/encode_file_view.dart';
-import 'package:stenography/views/encode_message_view.dart';
-import '../controllers/tab_bar_controller.dart';
+import 'package:stenography/ui/screens/drawer.dart';
+import '../../controllers/tab_bar_controller.dart';
+import '../screens/decode_view.dart';
+import '../screens/encode_file_view.dart';
+import '../screens/encode_message_view.dart';
+import 'all_encoded_images.dart';
 
 class HomePage extends StatefulWidget {
   static const String id = "home_page";
@@ -25,14 +27,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     TabBarIndexController controller = Get.put(TabBarIndexController());
 
     return Scaffold(
-      drawer: const Drawer(),
+      drawer: DrawerScreen(),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Color(0xffDCD7C9)),
         backgroundColor: const Color(0xff3F4E4F),
         title: const Text(
-          "Home Page",
+          "Shield",
           style: TextStyle(
             color: Color(0xffDCD7C9),
+            fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
@@ -58,7 +61,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 },
                 tabs: [
                   Tab(
-
                     child: Container(
                       padding: const EdgeInsets.only(
                           left: 10, right: 20, top: 8, bottom: 8),
@@ -91,7 +93,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     ? Colors.white
                                     : Colors.blue,
                                 fontWeight: FontWeight.w600),
-                          )
+                          ).tr(),
                         ],
                       ),
                     ),
@@ -129,7 +131,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     ? Colors.white
                                     : Colors.blue,
                                 fontWeight: FontWeight.w600),
-                          )
+                          ).tr(),
                         ],
                       ),
                     ),
@@ -155,7 +157,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 color: Colors.orange,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 17),
-                          )
+                          ).tr()
                         : const SizedBox.shrink(),
                   ),
                 ),
@@ -171,7 +173,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           color: Colors.blue,
                           fontWeight: FontWeight.bold,
                           fontSize: 15),
-                    ),
+                    ).tr(),
                   ),
                 ),
               ],
@@ -181,7 +183,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             Expanded(
               child: TabBarView(
                 children: [
-                  _changePage ? const EncodeMessageView() : const EncodeFileView(),
+                  _changePage
+                      ? const EncodeMessageView()
+                      : const EncodeFileView(),
                   const DecodeView(),
                 ],
               ),

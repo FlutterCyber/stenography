@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:stenography/service/file_extension_finder.dart';
 import 'create_folder.dart';
 
-
 class ImageSaver {
   Directory? stenoDirectory;
 
@@ -24,12 +23,13 @@ class ImageSaver {
     }
   }
 
-  Future saveDecodedFileToLocalFolder(File file,String decodedFilename) async {
+  Future saveDecodedFileToLocalFolder(File file, String decodedFilename) async {
     try {
       stenoDirectory = await CreateFolder.decodedFileFolder();
       final uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
 
-      final localFile = File('${stenoDirectory!.path}/$uniqueFileName.${fileExtension(file)}');
+      final localFile = File(
+          '${stenoDirectory!.path}/$uniqueFileName.${getFileExtension(file: file)}');
       var copiedFile = await file.copy(localFile.path);
       log('Image saved to: ${copiedFile.path}');
       return localFile.path;
