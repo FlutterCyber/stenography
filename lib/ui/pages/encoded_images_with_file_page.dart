@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:iconly/iconly.dart';
 import '../../service/get_image_paths.dart';
 
 class EncodedImagesWithFilePage extends StatefulWidget {
@@ -31,22 +32,65 @@ class _EncodedImagesWithFilePageState extends State<EncodedImagesWithFilePage> {
             } else {
               return GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // Adjust the number of columns as needed.
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 15,
+                  crossAxisSpacing: 15,
                 ),
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   final imagePath = snapshot.data![index];
                   return Container(
-                    margin: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
+                      color: Colors.red,
                       borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: Image.file(
-                        File(imagePath),
+                      image: DecorationImage(
                         fit: BoxFit.cover,
+                        image: FileImage(
+                          File(imagePath),
+                        ),
                       ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.5),
+                              borderRadius: const BorderRadius.only(
+                                bottomRight: Radius.circular(10),
+                                bottomLeft: Radius.circular(10),
+                              )),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  child: IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(
+                                      Icons.share,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                height: 40,
+                                width: 1,
+                                color: Colors.grey,
+                              ),
+                              Expanded(
+                                child: Container(
+                                  child: IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(
+                                      Icons.delete,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
                     ),
                   );
                 },

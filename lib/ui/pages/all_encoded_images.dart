@@ -39,8 +39,6 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
       ),
       body: Scaffold(
         backgroundColor: const Color(0xff3F4E4F),
-
-//        backgroundColor: const Color(0xff2C3639),
         body: DefaultTabController(
           initialIndex: 0,
           length: 2,

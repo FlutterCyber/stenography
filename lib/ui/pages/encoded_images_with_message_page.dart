@@ -17,9 +17,7 @@ class _EncodedImagesWithMessagePageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //backgroundColor: const Color(0xff2C3639),
       backgroundColor: const Color(0xff3F4E4F),
-
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: FutureBuilder<List<String>>(

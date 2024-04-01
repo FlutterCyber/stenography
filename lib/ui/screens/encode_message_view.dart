@@ -114,7 +114,6 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
   }
 
   void _save() async {
-    //Directory? stenoDirectory = await CreateFolder.stenoFolder();
     setState(() {
       isEncoding = true;
     });
