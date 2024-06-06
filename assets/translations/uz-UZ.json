@@ -2,13 +2,13 @@
   "Encode": "Yashirish",
   "Decode": "Ochish",
   "Encode message": "Matnni yashirish",
-  "All encoded images": "Barcha yashirilgan rasmlar",
+  "All encoded images": "Barcha rasmlar",
   "Attach file": "Fayl biriktirish",
   "File is empty": "File mavjud emas",
   "Encryption key": "Shifrlash kaliti",
   "Password": "Parol",
   "Language": "Til",
-  "No encrpytion": "Shifrlash yo'q",
+  "No encryption": "Shifrlash yo'q",
   "Cancel": "Bekor qilish",
   "Ok": "Ok",
   "Uzbek": "O'zbek",
@@ -21,5 +21,13 @@
   "Camera": "Kamera",
   "Type your secret message": "Maxfiy matnni kiriting",
   "Enter password": "Parolni kiriting",
-  "Please enter a password": "Iltimos parolni kiriting"
+  "Please enter a password": "Iltimos parolni kiriting",
+  "Decoded files": "Ochilgan ma'lumotlar",
+  "Message": "Matn",
+  "Encode file": "Faylni yashirish",
+  "Please select an image": "Iltimos konteyner tanlang",
+  "Decoded informations": "Ochilgan ma'lumotlar"
+
+
+
 }

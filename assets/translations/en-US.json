@@ -21,5 +21,10 @@
   "File": "File",
   "Camera": "Camera",
   "Type your secret message": "Type your secret message",
-  "Please enter a password": "Please enter a password"
+  "Please enter a password": "Please enter a password",
+  "Decoded files": "Decoded files",
+  "Message": "Message",
+  "Encode file": "Encode file",
+  "Please select an image": "Please select an image",
+  "Decoded informations": "Please select an image"
 }

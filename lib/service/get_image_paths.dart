@@ -18,7 +18,22 @@ Future<List<String>> getExternalStorageImagePaths(
   for (var file in files) {
     if (file is File) {
       final extension = file.path.split('.').last.toLowerCase();
-      if (extension == 'jpg' || extension == 'png' || extension == 'jpeg') {
+      if (extension == 'jpg' ||
+          extension == 'png' ||
+          extension == 'jpeg' ||
+          extension == 'pdf' ||
+          extension == 'doc' ||
+          extension == 'docx' ||
+          extension == 'mp3' ||
+          extension == 'mp4' ||
+          extension == 'doc' ||
+          extension == 'tiff' ||
+          extension == 'bmp' ||
+          extension == 'mpeg' ||
+          extension == 'mkv' ||
+          extension == 'wmv' ||
+          extension == 'webm' ||
+          extension == 'vob') {
         imagePaths.add(file.path);
       }
     }

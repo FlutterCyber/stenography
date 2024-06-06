@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
+import 'package:stenography/controllers/data_type_controller.dart';
 import 'package:stenography/data/repositories/extensions.dart';
 import 'package:stenography/service/create_folder.dart';
 import '../../encrypt/decrypt.dart';
@@ -35,10 +36,11 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
   String? decodedFileName;
   String? _path;
   var logger = Logger();
-  late AnimationController _controller;
   TextEditingController textEditingController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   bool passwordIsVisible = true;
+  late AnimationController _controller;
+  DataTypeController dataTypeController = Get.put(DataTypeController());
 
   @override
   void initState() {
@@ -88,49 +90,74 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
   }
 
   void _decode() async {
-    setState(() {
-      isDecoding = true;
-    });
-    decodedMessage = await Decode.decode_image_with_message(selectedImage!);
+    dataTypeController.changeToFalse();
+
     String password = passwordController.text.trim();
     if (password.isNotEmpty) {
-      ///gettign AES keys
-      String aesKey = await keyGenFunc(keyLength: 256, password: password);
-      String aesIV = await keyGenFunc(keyLength: 128, password: password);
+      if (selectedImage != null) {
+        setState(() {
+          isDecoding = true;
+        });
+        decodedMessage = await Decode.decode_image_with_message(selectedImage!);
 
-      /// Decrypting message
-      DecryptWithAES decryptWithAES = DecryptWithAES.text(
-          aesKey: aesKey, aesIV: aesIV, cipherText: decodedMessage);
-      String decryptedMessage = decryptWithAES.decryptMessage();
+        ///gettign AES keys
+        String aesKey = await keyGenFunc(keyLength: 256, password: password);
+        String aesIV = await keyGenFunc(keyLength: 128, password: password);
 
-      /// decodedMessage ni UI da ham o'zgartirib chiqmaslik uchun uni decryptedMessage ga tenglashtirib qo'ydim
-      setState(() {
-        decodedMessage = decryptedMessage;
-      });
+        /// Decrypting message
+        DecryptWithAES decryptWithAES = DecryptWithAES.text(
+            aesKey: aesKey, aesIV: aesIV, cipherText: decodedMessage);
+        String decryptedMessage = decryptWithAES.decryptMessage();
 
-      decodedFile = await Decode.decode_image_with_file(selectedImage!);
+        /// decodedMessage ni UI da ham o'zgartirib chiqmaslik uchun uni decryptedMessage ga tenglashtirib qo'ydim
+        setState(() {
+          decodedMessage = decryptedMessage;
+        });
+        try {
+          decodedFile = await Decode.decode_image_with_file(selectedImage!);
 
-      /// converting File to Encrypted data type
-      MyEncrypt.Encrypted encr = readEncryptedFromFile(decodedFile!.path);
+          /// converting File to Encrypted data type
+          MyEncrypt.Encrypted encr = readEncryptedFromFile(decodedFile!.path);
 
-      /// Decrypting file
-      DecryptWithAES decryptWithAESFile = DecryptWithAES.file(
-          aesKey: aesKey, aesIV: aesIV, encryptedFile: encr);
-      List<int> lst = decryptWithAESFile.decryptFile();
-      int extensionNumber = lst.last;
-      String? extension = extensions[extensionNumber];
-      lst.removeLast();
-      File decryptedFile =
-          await createFileFromBytes(fileBytes: lst, fileExtension: extension!);
-      decodedFile = decryptedFile;
+          /// Decrypting file
+          DecryptWithAES decryptWithAESFile = DecryptWithAES.file(
+              aesKey: aesKey, aesIV: aesIV, encryptedFile: encr);
+          List<int> lst = decryptWithAESFile.decryptFile();
 
-      if (decodedFile != null) {
-        decodedFileName = mypath.basename(decodedFile!.path).toString();
+          /// kengaytmani ajratib olish
+          int extensionNumber = lst.last;
+          String? extension = extensions[extensionNumber];
+          if (extensions.containsKey(extensionNumber)) lst.removeLast();
+          File decryptedFile = await createFileFromBytes(
+              fileBytes: lst, fileExtension: extension!);
+          decodedFile = decryptedFile;
+
+          if (decodedFile != null) {
+            decodedFileName = mypath.basename(decodedFile!.path).toString();
+          }
+          _save();
+
+          setState(() {
+            isDecoding = false;
+          });
+        } catch (e) {
+          /// yashirilgan ma'lumot fayl yoki matn ekanligi quyidagi qator orqali tekshirli
+          dataTypeController.changeToTrue();
+          setState(() {
+            isDecoding = false;
+          });
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Please select an image').tr()),
+        );
+        return;
       }
-
-      setState(() {
-        isDecoding = false;
-      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: const Text('Please enter a password').tr()),
+      );
+      return;
     }
   }
 
@@ -203,6 +230,19 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
               ),
             ),
           ),
+          isDecoding
+              ? const Text(
+                  "Waiting...",
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ).tr()
+              : const SizedBox.shrink(),
+          isSaving
+              ? const CircularProgressIndicator()
+              : const SizedBox.shrink(),
           selectedImage == null
               ? Expanded(
                   child: Column(
@@ -220,7 +260,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                           },
                         ),
                       ),
-                       const Text(
+                      const Text(
                         "File is empty",
                         style: TextStyle(
                           color: Colors.white,
@@ -254,49 +294,59 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-                              isDecoding
-                                  ? const Text(
-                                      "Waiting...",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ).tr()
-                                  : const SizedBox.shrink(),
-                              isSaving
-                                  ? const CircularProgressIndicator()
-                                  : const SizedBox.shrink(),
                             ],
                           ),
                         ),
                       ),
-                      decodedMessage!.isEmpty
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "Decoded data:",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      !dataTypeController.fileOrText.value
                           ? const SizedBox.shrink()
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Flexible(
-                                  flex: 1,
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(20.0),
-                                        child: Text(
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 5,
-                                          "DECODED MSG: ${decodedMessage!}",
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
+                          : Container(
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: const Color(0xff3F4E4F),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Flexible(
+                                    flex: 1,
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(20.0),
+                                          child: Text(
+                                            // overflow: TextOverflow.ellipsis,
+                                            // maxLines: 5,
+                                            textAlign: TextAlign.justify,
+                                            decodedMessage.toString(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15,
+                                              //fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ).tr(),
-                                      ),
-                                    ],
+                                        ),
+                                        const SizedBox(
+                                          height: 70,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                       decodedFile != null
                           ? Row(
@@ -365,15 +415,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
             const SizedBox(
               width: 20,
             ),
-            IconButton(
-              onPressed: () async {
-                _save();
-              },
-              icon: const Icon(
-                Icons.save_alt,
-                color: Colors.blue,
-              ),
-            ),
+
             const SizedBox(
               width: 20,
             ),

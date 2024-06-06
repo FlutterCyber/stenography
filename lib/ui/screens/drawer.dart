@@ -1,10 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
 import 'package:logger/logger.dart';
+import 'package:stenography/ui/pages/all_decoded_files_page.dart';
 import '../../controllers/drawer_controller.dart';
-import 'alert_dialogs/show_material_dialog.dart';
 
 class DrawerScreen extends StatefulWidget {
   const DrawerScreen({Key? key}) : super(key: key);
@@ -72,146 +73,125 @@ class _DrawerScreenState extends State<DrawerScreen> {
                 ],
               ),
             ),
-            StatefulBuilder(builder: (context, setState) {
-              return ExpansionTile(
-                trailing: Icon(
-                  drawerController.isExpanded1.value
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: Colors.white,
-                ),
-                onExpansionChanged: (bool expanded) {
-                  drawerController.changeExpand1();
-                },
-                initiallyExpanded: drawerController.isExpanded1.value,
-                title: Row(
-                  children: [
-                    const Icon(
-                      IconlyBold.lock,
-                      size: 27,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(
-                      width: 15,
-                    ),
-                    const Text(
-                      "Encryption key",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ).tr(),
-                  ],
-                ),
-                children: [
-                  Obx(
-                    () => RadioListTile(
-                        // ignore: prefer_const_constructors
-                        title: Text(
-                          "No encryption",
-                          style: TextStyle(
-                              color: Colors.blue, fontWeight: FontWeight.bold),
-                        ).tr(),
-                        activeColor: Colors.blue,
-                        value: drawerController.encryptionOptions[0].toString(),
-                        groupValue:
-                            drawerController.currentEncryptionOption.toString(),
-                        onChanged: (value) {
-                          drawerController.changeEncryptionOption(value);
-                          logger
-                              .e("${drawerController.currentEncryptionOption}");
-                        }),
+            StatefulBuilder(
+              builder: (context, setState) {
+                return ExpansionTile(
+                  trailing: Icon(
+                    drawerController.isExpanded1.value
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: Colors.white,
                   ),
-                  Obx(
-                    () => RadioListTile(
-                      title: const Text(
-                        "AES 128",
-                        style: TextStyle(
-                            color: Colors.blue, fontWeight: FontWeight.bold),
-                      ),
-                      activeColor: Colors.blue,
-                      value: drawerController.encryptionOptions[1].toString(),
-                      groupValue:
-                          drawerController.currentEncryptionOption.toString(),
-                      onChanged: (value) {
-                        drawerController.changeEncryptionOption(value);
-                        logger.e("${drawerController.currentEncryptionOption}");
-                      },
-                    ),
-                  ),
-                  Obx(
-                    () => RadioListTile(
-                        title: const Text(
-                          "AES 256",
-                          style: TextStyle(
-                              color: Colors.blue, fontWeight: FontWeight.bold),
-                        ),
-                        activeColor: Colors.blue,
-                        value: drawerController.encryptionOptions[2].toString(),
-                        groupValue:
-                            drawerController.currentEncryptionOption.toString(),
-                        onChanged: (value) {
-                          drawerController.changeEncryptionOption(value);
-                          logger
-                              .e("${drawerController.currentEncryptionOption}");
-                        }),
-                  ),
-                  Obx(
-                    () => RadioListTile(
-                        title: const Text(
-                          "AES 512",
-                          style: TextStyle(
-                              color: Colors.blue, fontWeight: FontWeight.bold),
-                        ),
-                        activeColor: Colors.blue,
-                        value: drawerController.encryptionOptions[3].toString(),
-                        groupValue:
-                            drawerController.currentEncryptionOption.toString(),
-                        onChanged: (value) {
-                          drawerController.changeEncryptionOption(value);
-                          logger
-                              .e("${drawerController.currentEncryptionOption}");
-                        }),
-                  ),
-                ],
-              );
-            }),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {},
-                splashColor: Colors.orange.withOpacity(0.3),
-                // Customize the splash color
-                child: ListTile(
-                  onTap: () {
-                    showMaterialAlertDialog(context);
+                  onExpansionChanged: (bool expanded) {
+                    drawerController.changeExpand1();
                   },
+                  initiallyExpanded: drawerController.isExpanded1.value,
                   title: Row(
                     children: [
                       const Icon(
-                        IconlyBold.password,
+                        IconlyBold.lock,
                         size: 27,
                         color: Colors.grey,
                       ),
                       const SizedBox(
                         width: 15,
                       ),
-                      const Text(
-                        "Password",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ).tr(),
-                      const SizedBox(
-                        width: 15,
+                      Flexible(
+                        child: const Text(
+                          "Encryption key",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ).tr(),
                       ),
                     ],
                   ),
-                ),
-              ),
+                  children: [
+                    Obx(
+                      () => RadioListTile(
+                          // ignore: prefer_const_constructors
+                          title: Flexible(
+                            child: const Text(
+                              "No encryption",
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold),
+                            ).tr(),
+                          ),
+                          activeColor: Colors.blue,
+                          value:
+                              drawerController.encryptionOptions[0].toString(),
+                          groupValue: drawerController.currentEncryptionOption
+                              .toString(),
+                          onChanged: (value) {
+                            drawerController.changeEncryptionOption(value);
+                            logger.e(
+                                "${drawerController.currentEncryptionOption}");
+                          }),
+                    ),
+                    Obx(
+                      () => RadioListTile(
+                        title: const Text(
+                          "AES 128",
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                        activeColor: Colors.blue,
+                        value: drawerController.encryptionOptions[1].toString(),
+                        groupValue:
+                            drawerController.currentEncryptionOption.toString(),
+                        onChanged: (value) {
+                          drawerController.changeEncryptionOption(value);
+                          logger
+                              .e("${drawerController.currentEncryptionOption}");
+                        },
+                      ),
+                    ),
+                    Obx(
+                      () => RadioListTile(
+                          title: const Text(
+                            "AES 192",
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          activeColor: Colors.blue,
+                          value:
+                              drawerController.encryptionOptions[3].toString(),
+                          groupValue: drawerController.currentEncryptionOption
+                              .toString(),
+                          onChanged: (value) {
+                            drawerController.changeEncryptionOption(value);
+                            logger.e(
+                                "${drawerController.currentEncryptionOption}");
+                          }),
+                    ),
+                    Obx(
+                      () => RadioListTile(
+                          title: const Text(
+                            "AES 256",
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          activeColor: Colors.blue,
+                          value:
+                              drawerController.encryptionOptions[2].toString(),
+                          groupValue: drawerController.currentEncryptionOption
+                              .toString(),
+                          onChanged: (value) {
+                            drawerController.changeEncryptionOption(value);
+                            logger.e(
+                                "${drawerController.currentEncryptionOption}");
+                          }),
+                    ),
+                  ],
+                );
+              },
             ),
             StatefulBuilder(
               builder: (context, setState) {
@@ -279,10 +259,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
                               drawerController.currentLanguageOption.toString(),
                           onChanged: (value) {
                             drawerController.changeLanguageOption(value);
-
                             context.setLocale(const Locale('ru', 'RU'));
                             Get.updateLocale(const Locale('ru', 'RU'));
-
                           }),
                     ),
                     Obx(
@@ -308,6 +286,46 @@ class _DrawerScreenState extends State<DrawerScreen> {
                   ],
                 );
               },
+            ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {},
+                splashColor: Colors.orange.withOpacity(0.3),
+                // Customize the splash color
+                child: ListTile(
+                  onTap: () {
+                    Navigator.pushReplacementNamed(
+                        context, AllDecodedFilesPage.id);
+                  },
+                  title: Row(
+                    children: [
+                      const Icon(
+                        IconlyBold.password,
+                        size: 27,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(
+                        width: 15,
+                      ),
+                      Flexible(
+                        child: const Text(
+                          "Decoded files",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ).tr(),
+                      ),
+                      const SizedBox(
+                        width: 15,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),

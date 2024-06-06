@@ -1,19 +1,60 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
+import 'package:lottie/lottie.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../service/get_image_paths.dart';
 
-class EncodedImagesWithFilePage extends StatefulWidget {
-  static const String id = "encoded_images_with_file_page";
+class ShowImagesPage extends StatefulWidget {
+  String? fileType;
+  static const String id = "show_images_page";
 
-  const EncodedImagesWithFilePage({Key? key}) : super(key: key);
+  ShowImagesPage({Key? key, required this.fileType}) : super(key: key);
 
   @override
-  State<EncodedImagesWithFilePage> createState() =>
-      _EncodedImagesWithFilePageState();
+  State<ShowImagesPage> createState() => _ShowImagesPageState();
 }
 
-class _EncodedImagesWithFilePageState extends State<EncodedImagesWithFilePage> {
+class _ShowImagesPageState extends State<ShowImagesPage>
+    with TickerProviderStateMixin {
+  late AnimationController _controller;
+
+  // Function to share image
+  void _shareImage(String imagePath) async {
+    await Share.shareXFiles(
+      [XFile(imagePath, mimeType: 'application/octet-stream')],
+      text: 'Great picture',
+    );
+  }
+
+  // Function to delete image
+  void _deleteImage(String imagePath) {
+    File(imagePath).deleteSync(); // Delete the image file synchronously
+    setState(() {}); // Refresh the UI
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+    );
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _controller.stop();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _controller.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,14 +62,43 @@ class _EncodedImagesWithFilePageState extends State<EncodedImagesWithFilePage> {
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: FutureBuilder<List<String>>(
-          future: getExternalStorageImagePaths(path: "file_image"),
+          future:
+              getExternalStorageImagePaths(path: widget.fileType.toString()),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator(); // Display a loading indicator while fetching image paths.
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Text('No images found in external storage.');
+              return Container(
+                width: double.infinity,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 200,
+                      width: 200,
+                      child: LottieBuilder.asset(
+                        "assets/lotties/no_file.json",
+                        controller: _controller,
+                        onLoaded: (composition) {
+                          _controller.duration = composition.duration;
+                          _controller.forward();
+                        },
+                      ),
+                    ),
+                    const Text(
+                      "File is empty",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ).tr(),
+                  ],
+                ),
+              );
             } else {
               return GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -63,12 +133,10 @@ class _EncodedImagesWithFilePageState extends State<EncodedImagesWithFilePage> {
                           child: Row(
                             children: [
                               Expanded(
-                                child: Container(
-                                  child: IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(
-                                      Icons.share,
-                                    ),
+                                child: IconButton(
+                                  onPressed: () => _shareImage(imagePath),
+                                  icon: const Icon(
+                                    Icons.share,
                                   ),
                                 ),
                               ),
@@ -78,12 +146,10 @@ class _EncodedImagesWithFilePageState extends State<EncodedImagesWithFilePage> {
                                 color: Colors.grey,
                               ),
                               Expanded(
-                                child: Container(
-                                  child: IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(
-                                      Icons.delete,
-                                    ),
+                                child: IconButton(
+                                  onPressed: () => _deleteImage(imagePath),
+                                  icon: const Icon(
+                                    Icons.delete,
                                   ),
                                 ),
                               )

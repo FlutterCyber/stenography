@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
-import 'package:convert/convert.dart';
 
 Future keyGenFunc({required int keyLength, required String password}) async {
   final pbkdf2 = Pbkdf2(
@@ -14,8 +13,6 @@ Future keyGenFunc({required int keyLength, required String password}) async {
     nonce: const [1, 2, 3],
   );
   final List<int> secretKeyBytes = await newSecretKey.extractBytes();
-  // final hexString = hex.encode(secretKeyBytes);
-  // return hexString;
   final base64Key = base64.encode(secretKeyBytes);
   return base64Key;
 }

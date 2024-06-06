@@ -5,10 +5,10 @@
   "All encoded images": "Все изображения",
   "Attach file": "Прикрепить",
   "File is empty": "Файл пуст",
-  "Encryption key": "Ключ шифрования",
+  "Encryption key": "Щифрования",
   "Password": "Пароль",
   "Language": "Язык",
-  "No encrpytion": "Нет шифрования",
+  "No encryption": "Нет шифрования",
   "Enter password": "Введите пароль",
   "Cancel": "Отмена",
   "Ok": "Ok",
@@ -21,5 +21,15 @@
   "File": "Файл",
   "Camera": "Камера",
   "Type your secret message": "Введите секретное сообщение",
-  "Please enter a password": "Пожалуйста введите пароль"
+  "Please enter a password": "Пожалуйста введите пароль",
+  "Decoded files": "Раскрытие данные",
+  "Message": "Текст",
+  "Encode file": "Скрыть файл",
+  "Please select an image": "Пожалуйста, выберите контейнер",
+  "Decoded informations": "Раскрытие данные"
+
+
+
+
+
 }

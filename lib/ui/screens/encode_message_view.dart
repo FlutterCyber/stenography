@@ -44,21 +44,22 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
     String plainText = textEditingController.text.trim();
     String password = passwordController.text.trim();
 
-    ///gettign AES keys
     if (password.isNotEmpty) {
-      String aesKey = await keyGenFunc(keyLength: 256, password: password);
-      String aesIV = await keyGenFunc(keyLength: 128, password: password);
-
-      /// encrypting message
-      EncrpytWithAES encrpytWithAES = EncrpytWithAES.forText(
-          aesKey: aesKey, aesIV: aesIV, plainText: plainText);
-      String secretMessage = encrpytWithAES.encryptText().base64;
-
       if (selectedImage != null) {
         if (plainText.isNotEmpty) {
           setState(() {
             isEncoding = true;
           });
+
+          ///gettign AES keys
+          String aesKey = await keyGenFunc(keyLength: 256, password: password);
+          String aesIV = await keyGenFunc(keyLength: 128, password: password);
+
+          /// encrypting message
+          EncrpytWithAES encrpytWithAES = EncrpytWithAES.forText(
+              aesKey: aesKey, aesIV: aesIV, plainText: plainText);
+          String secretMessage = encrpytWithAES.encryptText().base64;
+
           await getEncodedImage(secretMessage: secretMessage);
           setState(() {
             isEncoding = false;
@@ -66,6 +67,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${encodedImage!.path}')),
           );
+          _save();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: const Text('Please enter a secret message').tr()),
@@ -226,6 +228,21 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
               : Expanded(
                   child: ListView(
                     children: [
+                      isEncoding
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  "Waiting...",
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ).tr(),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
                       SizedBox(
                         width: double.infinity,
                         child: Center(
@@ -240,24 +257,12 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
                                 margin: const EdgeInsets.all(20),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(13.0),
-                                  // Set your desired border radius here
-
                                   child: Image.file(
                                     selectedImage!,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
                               ),
-                              isEncoding
-                                  ? const Text(
-                                      "Waiting...",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ).tr()
-                                  : const SizedBox.shrink(),
                             ],
                           ),
                         ),
@@ -303,15 +308,6 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
               },
               icon: const Icon(
                 IconlyBold.lock,
-                color: Colors.blue,
-              ),
-            ),
-            IconButton(
-              onPressed: () async {
-                _save();
-              },
-              icon: const Icon(
-                Icons.save_alt,
                 color: Colors.blue,
               ),
             ),

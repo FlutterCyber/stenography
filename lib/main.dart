@@ -2,9 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:stenography/ui/pages/all_decoded_files_page.dart';
 import 'package:stenography/ui/pages/all_encoded_images.dart';
-import 'package:stenography/ui/pages/encoded_images_with_file_page.dart';
-import 'package:stenography/ui/pages/encoded_images_with_message_page.dart';
 import 'package:stenography/ui/pages/home_page.dart';
 import 'calc/bindings/my_bindings.dart';
 import 'calc/screen/main_screen.dart';
@@ -16,14 +15,16 @@ void main() async {
 
   runApp(
     EasyLocalization(
-        supportedLocales: const [
-          Locale('uz', 'UZ'),
-          Locale('en', 'US'),
-          Locale('ru', 'RU'),
-        ],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('ru', 'RU'),
-        child: const MyApp()),
+      supportedLocales: const [
+        Locale('uz', 'UZ'),
+        Locale('en', 'US'),
+        Locale('ru', 'RU'),
+      ],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('ru', 'RU'),
+      startLocale: const Locale('ru', 'RU'), // Set initial locale here
+      child: const MyApp(),
+    ),
   );
 }
 
@@ -43,10 +44,7 @@ class MyApp extends StatelessWidget {
       routes: {
         HomePage.id: (context) => const HomePage(),
         AllEncodedImages.id: (context) => const AllEncodedImages(),
-        EncodedImagesWithMessagePage.id: (context) =>
-            const EncodedImagesWithMessagePage(),
-        EncodedImagesWithFilePage.id: (context) =>
-            const EncodedImagesWithFilePage(),
+        AllDecodedFilesPage.id: (context) => const AllDecodedFilesPage(),
       },
     );
   }

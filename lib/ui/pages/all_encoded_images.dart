@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
-import 'encoded_images_with_file_page.dart';
-import 'encoded_images_with_message_page.dart';
+import 'package:stenography/ui/pages/show_images_page.dart';
 import 'home_page.dart';
 
 class AllEncodedImages extends StatefulWidget {
@@ -32,7 +32,7 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
         ),
         backgroundColor: const Color(0xff3F4E4F),
         title: const Text(
-          "All Encoded Images",
+          "All encoded images",
           style: TextStyle(color: Colors.white),
         ).tr(),
         centerTitle: true,
@@ -65,8 +65,7 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
                   tabs: [
                     Tab(
                       child: Container(
-                        padding: const EdgeInsets.only(
-                            left: 10, right: 20, top: 8, bottom: 8),
+                        padding: const EdgeInsets.only(top: 8, bottom: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(13),
                           border: Border.all(
@@ -91,15 +90,19 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
                             const SizedBox(
                               width: 10,
                             ),
-                            Text(
-                              "Message",
-                              style: TextStyle(
-                                  color: tabBarIndex == 0
-                                      ? Colors.white
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 18),
-                            ).tr(),
+                            Flexible(
+                              child: Text(
+                                "Message",
+                                overflow: TextOverflow.ellipsis,
+
+                                style: TextStyle(
+                                    color: tabBarIndex == 0
+                                        ? Colors.white
+                                        : Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 18),
+                              ).tr(),
+                            ),
                           ],
                         ),
                       ),
@@ -149,11 +152,14 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
                   ],
                 ),
               ),
-              const Expanded(
+              Expanded(
                   child: TabBarView(
                 children: [
-                  EncodedImagesWithMessagePage(),
-                  EncodedImagesWithFilePage(),
+                  ShowImagesPage(fileType: "message_image"),
+                  ShowImagesPage(fileType: "file_image"),
+
+                  //EncodedImagesWithMessagePage(),
+                  //EncodedImagesWithFilePage(),
                 ],
               ))
             ],

@@ -1,13 +1,9 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
-import 'package:stenography/encrypt/key_generation.dart';
 import 'package:stenography/ui/pages/home_page.dart';
-
 import '../../service/hive_service.dart';
 import '../controller/calculate_controller.dart';
 import '../controller/theme_controller.dart';
@@ -51,13 +47,15 @@ class MainScreen extends StatelessWidget {
         backgroundColor: themeController.isDark
             ? DarkColors.scaffoldBgColor
             : LightColors.scaffoldBgColor,
-        body: Column(
-          children: [
-            GetBuilder<CalculateController>(builder: (context) {
-              return outPutSection(themeController, controller);
-            }),
-            inPutSection(themeController, controller),
-          ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              GetBuilder<CalculateController>(builder: (context) {
+                return outPutSection(themeController, controller);
+              }),
+              inPutSection(themeController, controller),
+            ],
+          ),
         ),
       );
     });
@@ -116,7 +114,6 @@ class MainScreen extends StatelessWidget {
                           List<int> bytes = utf8.encode(aesIV);
                           int lengthInBits = bytes.length * 8;
                           logger.e(lengthInBits);
-
 
                           // String aesKey = await keyGenFunc();
                           // logger.e(aesIV.length);
@@ -185,15 +182,13 @@ class MainScreen extends StatelessWidget {
               inactiveImage: const AssetImage('assets/night_sky.jpg'),
               activeColor: Colors.green,
               inactiveColor: Colors.grey,
-              activeChild: Text(
+              activeChild: const Text(
                 'Day',
-                style: GoogleFonts.ubuntu(
-                    fontWeight: FontWeight.bold, fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               ),
-              inactiveChild: Text(
+              inactiveChild: const Text(
                 'Night',
-                style: GoogleFonts.ubuntu(
-                    fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               ),
               borderRadius: const BorderRadius.all(Radius.circular(1000)),
               width: 100.0,
@@ -214,7 +209,7 @@ class MainScreen extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: Text(
                   controller.userInput,
-                  style: GoogleFonts.ubuntu(
+                  style: TextStyle(
                       color:
                           themeController.isDark ? Colors.white : Colors.black,
                       fontSize: 38),
@@ -224,7 +219,7 @@ class MainScreen extends StatelessWidget {
                 alignment: Alignment.bottomRight,
                 child: Text(
                   controller.userOutput,
-                  style: GoogleFonts.ubuntu(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: themeController.isDark ? Colors.white : Colors.black,
                     fontSize: 60,

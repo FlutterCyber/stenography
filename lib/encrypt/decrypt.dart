@@ -1,9 +1,5 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
 import 'package:logger/logger.dart';
-import 'dart:convert';
-import 'dart:io';
 
 class DecryptWithAES {
   String? aesKey;
@@ -22,7 +18,7 @@ class DecryptWithAES {
     final Key key = Key.fromBase64(aesKey!);
     final IV iv = IV.fromBase64(aesIV!);
     Encrypted encryptedMessage = Encrypted.fromBase64(cipherText!);
-    final encrypter = Encrypter(AES(key));
+    final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
     final decryptedMessage = encrypter.decrypt(encryptedMessage, iv: iv);
     logger.i("Message decrypted seccesfully: $decryptedMessage");
     return decryptedMessage;
@@ -31,7 +27,9 @@ class DecryptWithAES {
   List<int> decryptFile() {
     final Key key = Key.fromBase64(aesKey!);
     final IV iv = IV.fromBase64(aesIV!);
-    final encrypter = Encrypter(AES(key));
+    final encrypter = Encrypter(
+      AES(key, mode: AESMode.cbc),
+    );
 
     final List<int> decryptedFile =
         encrypter.decryptBytes(encryptedFile!, iv: iv);

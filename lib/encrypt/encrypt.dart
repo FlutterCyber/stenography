@@ -22,7 +22,7 @@ class EncrpytWithAES {
     final Key key = Key.fromBase64(aesKey!);
     final IV iv = IV.fromBase64(aesIV!);
 
-    final encrypter = Encrypter(AES(key));
+    final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
     final Encrypted encryptedMessage = encrypter.encrypt(plainText!, iv: iv);
     logger.i(encrypter.encryptBytes([1, 2, 3], iv: iv).base64);
     logger.i("Message encrypted succesfully: ${encryptedMessage.base64}");
@@ -42,7 +42,7 @@ class EncrpytWithAES {
     final IV iv = IV.fromBase64(aesIV!);
     logger.w(key.length);
     logger.w(iv.bytes.length);
-    final encrypter = Encrypter(AES(key));
+    final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
 
     String extension = getFileExtension(file: file!);
 

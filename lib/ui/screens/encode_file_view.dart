@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
@@ -65,8 +67,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
     final tempDir = Directory.systemTemp;
 
     // Generate a unique file name
-    final uniqueFileName =
-        DateTime.now().millisecondsSinceEpoch.toString() + '_' + fileName;
+    final uniqueFileName = DateTime.now().toString() + '_' + fileName;
 
     // Combine the temporary directory and the unique file name to get the temporary file path
     final tempFilePath = path.join(tempDir.path, uniqueFileName);
@@ -102,6 +103,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(encodedImage!.path)),
           );
+          _save();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Please pick a file')),
@@ -285,20 +287,8 @@ class _EncodeFileViewState extends State<EncodeFileView>
                                       ),
                                     ).tr()
                                   : const SizedBox.shrink(),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(13),
-                                ),
-                                margin: const EdgeInsets.all(20),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(13.0),
-                                  // Set your desired border radius here
-
-                                  child: Image.file(
-                                    selectedImage!,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                              const SizedBox(
+                                height: 20,
                               ),
                               selectedFile == null
                                   ? Row(
@@ -323,45 +313,71 @@ class _EncodeFileViewState extends State<EncodeFileView>
                                         ).tr()
                                       ],
                                     )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.file_open_rounded,
-                                          color: Colors.white70,
-                                          size: 60,
-                                        ),
-                                        const SizedBox(
-                                          width: 15,
-                                        ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              "Attached file's name is:",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 17,
-                                              ),
-                                            ).tr(),
-                                            Text(
-                                              fileName!,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                color: Colors.teal,
-                                                fontSize: 17,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                  : Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 20, right: 20),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.file_open_rounded,
+                                            color: Colors.white70,
+                                            size: 60,
+                                          ),
+                                          const SizedBox(
+                                            width: 15,
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "Attached file's name is:",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 17,
+                                                  ),
+                                                ).tr(),
+                                                Text(
+                                                  fileName!,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  style: const TextStyle(
+                                                    color: Colors.teal,
+                                                    fontSize: 17,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
-                                      ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(13),
+                                ),
+                                margin: const EdgeInsets.all(20),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(13.0),
+                                  // Set your desired border radius here
+
+                                  child: Image.file(
+                                    selectedImage!,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
+                      ),
+                      const SizedBox(
+                        height: 100,
                       ),
                     ],
                   ),
@@ -405,10 +421,14 @@ class _EncodeFileViewState extends State<EncodeFileView>
                         IconlyBold.document,
                         color: Colors.white,
                       ),
-                      const Text(
-                        'Attach file',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ).tr(),
+                      Flexible(
+                        child: const Text(
+                          'Attach file',
+                          overflow: TextOverflow.ellipsis,
+
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ).tr(),
+                      ),
                     ],
                   ),
                 ),
@@ -438,15 +458,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                 ),
               ),
             ),
-            IconButton(
-              onPressed: () async {
-                _save();
-              },
-              icon: const Icon(
-                Icons.save_alt,
-                color: Colors.blue,
-              ),
-            ),
+
           ],
         ),
       ),

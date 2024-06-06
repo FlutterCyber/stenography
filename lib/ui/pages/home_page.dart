@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
+import 'package:stenography/service/create_folder.dart';
 import 'package:stenography/ui/screens/drawer.dart';
 import '../../controllers/tab_bar_controller.dart';
 import '../screens/decode_view.dart';
@@ -23,11 +24,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int tabBarIndex = 0;
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    createFolders();
+  }
+
+  void createFolders() {
+    CreateFolder.decodedFileFolder().then((value) => {print("MANA 1: $value")});
+    CreateFolder.decryptedFileFolder()
+        .then((value) => {print("MANA 2: $value")});
+    CreateFolder.fileImageFolder().then((value) => {print("MANA 3: $value")});
+    CreateFolder.messageImageFolder()
+        .then((value) => {print("MANA 4: $value")});
+  }
+
+  @override
   Widget build(BuildContext context) {
     TabBarIndexController controller = Get.put(TabBarIndexController());
 
     return Scaffold(
-      drawer: DrawerScreen(),
+      drawer: const DrawerScreen(),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Color(0xffDCD7C9)),
         backgroundColor: const Color(0xff3F4E4F),
