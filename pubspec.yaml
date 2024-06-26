@@ -31,8 +31,10 @@ dependencies:
   cryptography: ^2.7.0
   easy_localization: ^3.0.5
   share_plus: ^8.0.2
+  open_filex: ^4.4.0
 
 
+  image: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -2,8 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
+import 'package:logger/logger.dart';
 import 'package:stenography/service/create_folder.dart';
 import 'package:stenography/ui/screens/drawer.dart';
+import '../../controllers/encryption_key_controller.dart';
 import '../../controllers/tab_bar_controller.dart';
 import '../screens/decode_view.dart';
 import '../screens/encode_file_view.dart';
@@ -22,12 +24,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool _changePage = false;
   int tabBarIndex = 0;
+  var logger = Logger();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     createFolders();
+    encryptionDatas();
   }
 
   void createFolders() {
@@ -37,6 +41,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     CreateFolder.fileImageFolder().then((value) => {print("MANA 3: $value")});
     CreateFolder.messageImageFolder()
         .then((value) => {print("MANA 4: $value")});
+  }
+
+  void encryptionDatas() {
+    EncryptionKeyController encryptionKeyController =
+        Get.put(EncryptionKeyController());
+    logger.i("Kalit: ${encryptionKeyController.encryptionEnabled}");
   }
 
   @override
@@ -57,7 +67,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         centerTitle: true,
       ),
-      backgroundColor: Color(0xff2C3639),
+      backgroundColor: const Color(0xff2C3639),
       body: DefaultTabController(
         initialIndex: 0,
         length: 2,

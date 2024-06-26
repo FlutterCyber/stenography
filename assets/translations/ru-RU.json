@@ -26,10 +26,8 @@
   "Message": "Текст",
   "Encode file": "Скрыть файл",
   "Please select an image": "Пожалуйста, выберите контейнер",
-  "Decoded informations": "Раскрытие данные"
-
-
-
-
-
+  "Decoded informations": "Раскрытие данные",
+  "Image saved to": "Изображение сохранено в",
+  "Please enter a secret message": "Пожалуйста, введите секретное сообщение",
+  "Please pick a file": "Пожалуйста, выберите файл"
 }

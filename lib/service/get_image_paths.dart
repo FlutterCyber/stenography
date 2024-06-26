@@ -5,12 +5,14 @@ import 'package:path_provider/path_provider.dart';
 Future<List<String>> getExternalStorageImagePaths(
     {required String path}) async {
   Directory? directory;
-  if (Platform.isAndroid) {
-    directory = Directory('/storage/emulated/0/Download/steno/$path');
-  } else if (Platform.isIOS) {
-    final myFilesDirectory = await getApplicationDocumentsDirectory();
-    directory = Directory('${myFilesDirectory!.path}/$path');
-  }
+  // if (Platform.isAndroid) {
+  //   directory = Directory('/storage/emulated/0/Download/steno/$path');
+  // } else if (Platform.isIOS) {
+  //   final myFilesDirectory = await getApplicationDocumentsDirectory();
+  //   directory = Directory('${myFilesDirectory.path}/$path');
+  // }
+  final myFilesDirectory = await getApplicationDocumentsDirectory();
+  directory = Directory('${myFilesDirectory.path}/$path');
 
   final List<FileSystemEntity> files = Directory(directory!.path).listSync();
 

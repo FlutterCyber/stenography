@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:lottie/lottie.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:stenography/ui/pages/home_page.dart';
 import 'package:path/path.dart' as path;
 import '../../service/get_image_paths.dart';
@@ -38,6 +41,30 @@ class _AllDecodedFilesPageState extends State<AllDecodedFilesPage>
     // TODO: implement dispose
     super.dispose();
     _controller.dispose();
+  }
+
+  Future<void> deleteFile(String filePath) async {
+    final file = File(filePath);
+    try {
+      if (await file.exists()) {
+        await file.delete();
+        setState(() {});
+        Get.snackbar("File deleted successfully".tr(), "",
+            colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar("Failed to delete the file: $e", "",
+          colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  Future<void> openFile(String filePath) async {
+    try {
+      await OpenFilex.open(filePath);
+    } catch (e) {
+      Get.snackbar("Failed to open the file: $e", "",
+          colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+    }
   }
 
   @override
@@ -110,63 +137,50 @@ class _AllDecodedFilesPageState extends State<AllDecodedFilesPage>
                 itemBuilder: (ctx, index) {
                   final imagePath = snapshot.data![index];
                   fileName = path.basename(imagePath).toString();
-                  return Container(
-                    margin: const EdgeInsets.only(
-                        left: 20, right: 20, top: 10, bottom: 10),
-                    padding: const EdgeInsets.only(
-                      left: 20,
-                      right: 10,
-                    ),
-                    height: 80,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.white
-                        // image: DecorationImage(
-                        //   fit: BoxFit.cover,
-                        //   image: FileImage(
-                        //     File(imagePath),
-                        //   ),
-                        // ),
-                        ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          (index + 1).toString(),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          fileName!,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Column(
-                          children: [
-                            Expanded(
-                              child: IconButton(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.share,
-                                ),
-                              ),
+                  return GestureDetector(
+                    onTap: () {
+                      openFile(imagePath);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(
+                          left: 20, right: 20, top: 10, bottom: 10),
+                      padding: const EdgeInsets.only(
+                        left: 20,
+                        right: 10,
+                      ),
+                      height: 80,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.white),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            (index + 1).toString(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                            Expanded(
-                              child: IconButton(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.delete,
-                                ),
-                              ),
-                            )
-                          ],
-                        )
-                      ],
+                          ),
+                          Text(
+                            fileName!,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              deleteFile(imagePath);
+                            },
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },

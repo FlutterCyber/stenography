@@ -50,7 +50,7 @@ class EncrpytWithAES {
       if (extension == extensionName) {
         logger.e("Extension key is: $extensionNumber, value is $extensionName");
         try {
-          fileContent.add(extensionNumber!);
+          fileContent.add(extensionNumber);
           logger.d("Extension number added to list successfully");
         } catch (e) {
           logger.e("Adding to list error: $e");

@@ -1,8 +1,5 @@
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
-import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
@@ -10,13 +7,14 @@ import 'package:iconly/iconly.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stenography/service/file_picker.dart';
+import '../../controllers/encryption_key_controller.dart';
 import '../../encrypt/encrypt.dart';
 import '../../encrypt/key_generation.dart';
-import '../../service/hive_service.dart';
 import '../../steno/encode.dart';
 import '../../service/image_picker.dart';
 import '../../service/image_saver.dart';
 import 'package:encrypt/encrypt.dart' as MyEncrypt;
+import 'package:get/get.dart' hide Trans;
 
 class EncodeFileView extends StatefulWidget {
   const EncodeFileView({Key? key}) : super(key: key);
@@ -28,6 +26,10 @@ class EncodeFileView extends StatefulWidget {
 class _EncodeFileViewState extends State<EncodeFileView>
     with TickerProviderStateMixin {
   TextEditingController passwordController = TextEditingController();
+  EncryptionKeyController encryptionKeyController =
+      Get.put(EncryptionKeyController());
+  String? password;
+
   List<File> imageFiles = [];
   File? selectedImage;
   File? pickedImage;
@@ -67,7 +69,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
     final tempDir = Directory.systemTemp;
 
     // Generate a unique file name
-    final uniqueFileName = DateTime.now().toString() + '_' + fileName;
+    final uniqueFileName = '${DateTime.now()}_$fileName';
 
     // Combine the temporary directory and the unique file name to get the temporary file path
     final tempFilePath = path.join(tempDir.path, uniqueFileName);
@@ -76,11 +78,16 @@ class _EncodeFileViewState extends State<EncodeFileView>
   }
 
   Future<void> _encodeFile() async {
-    String password = passwordController.text.trim();
-    if (password.isNotEmpty) {
+    if (encryptionKeyController.encryptionEnabled.value) {
+      password = passwordController.text.trim();
+    } else {
+      password = "123456789";
+    }
+
+    if (password!.isNotEmpty) {
       ///gettign AES keys
-      String aesKey = await keyGenFunc(keyLength: 256, password: password);
-      String aesIV = await keyGenFunc(keyLength: 128, password: password);
+      String aesKey = await keyGenFunc(keyLength: 256, password: password!);
+      String aesIV = await keyGenFunc(keyLength: 128, password: password!);
 
       if (selectedImage != null) {
         if (pickedFile != null) {
@@ -100,26 +107,21 @@ class _EncodeFileViewState extends State<EncodeFileView>
           setState(() {
             isEncoding = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(encodedImage!.path)),
-          );
+
           _save();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please pick a file')),
-          );
+          Get.snackbar("Please pick a file".tr(), "",
+              colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
           return;
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select an image')),
-        );
+        Get.snackbar("Please select an image".tr(), "",
+            colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
         return;
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Please enter a password').tr()),
-      );
+      Get.snackbar("Please enter a password".tr(), "",
+          colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
       return;
     }
   }
@@ -140,11 +142,9 @@ class _EncodeFileViewState extends State<EncodeFileView>
     setState(() {
       isEncoding = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Image saved to: $_path'),
-      ),
-    );
+
+    Get.snackbar("Image saved to".tr(), _path!,
+        colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
   }
 
   void _pickImageFromGallery() async {
@@ -155,9 +155,6 @@ class _EncodeFileViewState extends State<EncodeFileView>
     });
 
     print(pickedImage!.path);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${pickedImage!.path}')),
-    );
   }
 
   void _pickImageFromCamera() async {
@@ -168,9 +165,6 @@ class _EncodeFileViewState extends State<EncodeFileView>
       selectedImage = pickedImage;
     });
     print(pickedImage!.path);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${pickedImage!.path}')),
-    );
   }
 
   @override
@@ -195,58 +189,61 @@ class _EncodeFileViewState extends State<EncodeFileView>
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: const Color(0xff2C3639),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 5, right: 20, left: 20),
-            padding: const EdgeInsets.only(right: 10, left: 10),
-            height: 55,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: TextField(
-                controller: passwordController,
-                obscureText: passwordIsVisible,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(
-                    IconlyBold.lock,
-                    color: Colors.grey,
+          Obx(() => encryptionKeyController.encryptionEnabled.value
+              ? Container(
+                  margin: const EdgeInsets.only(bottom: 5, right: 20, left: 20),
+                  padding: const EdgeInsets.only(right: 10, left: 10),
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        passwordIsVisible = !passwordIsVisible;
-                      });
-                    },
-                    icon: passwordIsVisible
-                        ? const Icon(
-                            Icons.remove_red_eye,
-                            color: Colors.grey,
-                          )
-                        : const Icon(
-                            Icons.visibility_off,
-                            color: Colors.grey,
-                          ),
+                  child: Center(
+                    child: TextField(
+                      controller: passwordController,
+                      obscureText: passwordIsVisible,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(
+                          IconlyBold.lock,
+                          color: Colors.grey,
+                        ),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              passwordIsVisible = !passwordIsVisible;
+                            });
+                          },
+                          icon: passwordIsVisible
+                              ? const Icon(
+                                  Icons.remove_red_eye,
+                                  color: Colors.grey,
+                                )
+                              : const Icon(
+                                  Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                        ),
+                        border: InputBorder.none,
+                        hintText: "Enter password",
+                      ),
+                    ),
                   ),
-                  border: InputBorder.none,
-                  hintText: "Enter password",
-                ),
-              ),
-            ),
-          ),
+                )
+              : SizedBox.shrink()),
           selectedImage == null
               ? Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
+                      SizedBox(
                         height: 200,
-                        width: 200,
+                        width: MediaQuery.of(context).size.width,
                         child: LottieBuilder.asset(
                           "assets/lotties/1.json",
                           controller: _controller,
@@ -270,7 +267,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
               : Expanded(
                   child: ListView(
                     children: [
-                      Container(
+                      SizedBox(
                         width: double.infinity,
                         child: Center(
                           child: Column(
@@ -425,7 +422,6 @@ class _EncodeFileViewState extends State<EncodeFileView>
                         child: const Text(
                           'Attach file',
                           overflow: TextOverflow.ellipsis,
-
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ).tr(),
                       ),
@@ -458,7 +454,6 @@ class _EncodeFileViewState extends State<EncodeFileView>
                 ),
               ),
             ),
-
           ],
         ),
       ),
@@ -477,7 +472,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
         ),
       ),
       builder: (context) => Container(
-        padding: EdgeInsets.all(15),
+        padding: const EdgeInsets.all(15),
         height: 120,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

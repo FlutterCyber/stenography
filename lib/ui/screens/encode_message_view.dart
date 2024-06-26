@@ -2,9 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:iconly/iconly.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
+import '../../controllers/encryption_key_controller.dart';
 import '../../encrypt/encrypt.dart';
 import '../../encrypt/key_generation.dart';
 import '../../steno/encode.dart';
@@ -32,6 +34,9 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
   bool passwordIsVisible = true;
   TextEditingController passwordController = TextEditingController();
   TextEditingController textEditingController = TextEditingController();
+  EncryptionKeyController encryptionKeyController =
+      Get.put(EncryptionKeyController());
+  String? password;
 
   Future getEncodedImage({required String secretMessage}) async {
     encodedImage = await Encode.hideMessageInImage(
@@ -42,9 +47,13 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
 
   Future<void> _encode() async {
     String plainText = textEditingController.text.trim();
-    String password = passwordController.text.trim();
+    if (encryptionKeyController.encryptionEnabled.value) {
+      password = passwordController.text.trim();
+    } else {
+      password = "123456789";
+    }
 
-    if (password.isNotEmpty) {
+    if (password!.isNotEmpty) {
       if (selectedImage != null) {
         if (plainText.isNotEmpty) {
           setState(() {
@@ -52,8 +61,8 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
           });
 
           ///gettign AES keys
-          String aesKey = await keyGenFunc(keyLength: 256, password: password);
-          String aesIV = await keyGenFunc(keyLength: 128, password: password);
+          String aesKey = await keyGenFunc(keyLength: 256, password: password!);
+          String aesIV = await keyGenFunc(keyLength: 128, password: password!);
 
           /// encrypting message
           EncrpytWithAES encrpytWithAES = EncrpytWithAES.forText(
@@ -64,26 +73,21 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
           setState(() {
             isEncoding = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${encodedImage!.path}')),
-          );
-          _save();
+
+          await _save();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: const Text('Please enter a secret message').tr()),
-          );
+          Get.snackbar("Please enter a secret message".tr(), "",
+              colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
           return;
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Please select an image').tr()),
-        );
+        Get.snackbar("Please select an image".tr(), "",
+            colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
         return;
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Please enter a password').tr()),
-      );
+      Get.snackbar("Please enter a password".tr(), "",
+          colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
       return;
     }
   }
@@ -95,11 +99,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
     setState(() {
       selectedImage = pickedImage;
     });
-
     log(pickedImage!.path);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(pickedImage!.path)),
-    );
   }
 
   void _pickImageFromCamera() async {
@@ -110,12 +110,9 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
       selectedImage = pickedImage;
     });
     log(pickedImage!.path);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(pickedImage!.path)),
-    );
   }
 
-  void _save() async {
+  Future<void> _save() async {
     setState(() {
       isEncoding = true;
     });
@@ -124,11 +121,9 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
     setState(() {
       isEncoding = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Image saved to: $path'),
-      ),
-    );
+
+    Get.snackbar("Image saved to".tr(), path!,
+        colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
   }
 
   @override
@@ -158,45 +153,47 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 5, right: 20, left: 20),
-            padding: const EdgeInsets.only(right: 10, left: 10),
-            height: 55,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: TextField(
-                controller: passwordController,
-                obscureText: passwordIsVisible,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(
-                    IconlyBold.lock,
-                    color: Colors.grey,
+          Obx(() => encryptionKeyController.encryptionEnabled.value
+              ? Container(
+                  margin: const EdgeInsets.only(bottom: 5, right: 20, left: 20),
+                  padding: const EdgeInsets.only(right: 10, left: 10),
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        passwordIsVisible = !passwordIsVisible;
-                      });
-                    },
-                    icon: passwordIsVisible
-                        ? const Icon(
-                            Icons.remove_red_eye,
-                            color: Colors.grey,
-                          )
-                        : const Icon(
-                            Icons.visibility_off,
-                            color: Colors.grey,
-                          ),
+                  child: Center(
+                    child: TextField(
+                      controller: passwordController,
+                      obscureText: passwordIsVisible,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(
+                          IconlyBold.lock,
+                          color: Colors.grey,
+                        ),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              passwordIsVisible = !passwordIsVisible;
+                            });
+                          },
+                          icon: passwordIsVisible
+                              ? const Icon(
+                                  Icons.remove_red_eye,
+                                  color: Colors.grey,
+                                )
+                              : const Icon(
+                                  Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                        ),
+                        border: InputBorder.none,
+                        hintText: "Enter password",
+                      ),
+                    ),
                   ),
-                  border: InputBorder.none,
-                  hintText: "Enter password",
-                ),
-              ),
-            ),
-          ),
+                )
+              : SizedBox.shrink()),
           selectedImage == null
               ? Expanded(
                   child: Column(
@@ -204,7 +201,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
                     children: [
                       SizedBox(
                         height: 200,
-                        width: 200,
+                        width: MediaQuery.of(context).size.width,
                         child: LottieBuilder.asset(
                           "assets/lotties/no_file.json",
                           controller: _controller,

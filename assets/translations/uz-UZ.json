@@ -26,7 +26,10 @@
   "Message": "Matn",
   "Encode file": "Faylni yashirish",
   "Please select an image": "Iltimos konteyner tanlang",
-  "Decoded informations": "Ochilgan ma'lumotlar"
+  "Decoded informations": "Ochilgan ma'lumotlar",
+  "Image saved to": "Rasm saqlandi:",
+  "Please enter a secret message": "Iltimos, maxfiy xabarni kiriting",
+  "Please pick a file": "Iltimos, faylni tanlang"
 
 
 

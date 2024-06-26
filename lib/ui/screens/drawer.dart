@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
 import 'package:logger/logger.dart';
+import 'package:stenography/controllers/encryption_key_controller.dart';
 import 'package:stenography/ui/pages/all_decoded_files_page.dart';
 import '../../controllers/drawer_controller.dart';
 
@@ -19,7 +19,9 @@ class _DrawerScreenState extends State<DrawerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final MyDrawerController drawerController = Get.put(MyDrawerController());
+    MyDrawerController drawerController = Get.put(MyDrawerController());
+    EncryptionKeyController encryptionKeyController =
+        Get.put(EncryptionKeyController());
     return Drawer(
       child: Container(
         color: const Color(0xff2C3639), // Dark background color
@@ -36,27 +38,13 @@ class _DrawerScreenState extends State<DrawerScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Image.asset(
                         'assets/mylogo.png',
                         height: 60,
                         width: 60,
                         fit: BoxFit.contain,
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          drawerController.changeMode();
-                        },
-                        icon: drawerController.mode.value
-                            ? const Icon(
-                                Icons.dark_mode,
-                                color: Colors.white,
-                              )
-                            : const Icon(
-                                Icons.light_mode,
-                                color: Colors.white,
-                              ),
                       ),
                     ],
                   ),
@@ -96,7 +84,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                       const SizedBox(
                         width: 15,
                       ),
-                      Flexible(
+                      Expanded(
                         child: const Text(
                           "Encryption key",
                           overflow: TextOverflow.ellipsis,
@@ -112,26 +100,24 @@ class _DrawerScreenState extends State<DrawerScreen> {
                   children: [
                     Obx(
                       () => RadioListTile(
-                          // ignore: prefer_const_constructors
-                          title: Flexible(
-                            child: const Text(
-                              "No encryption",
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.bold),
-                            ).tr(),
-                          ),
-                          activeColor: Colors.blue,
-                          value:
-                              drawerController.encryptionOptions[0].toString(),
-                          groupValue: drawerController.currentEncryptionOption
-                              .toString(),
-                          onChanged: (value) {
-                            drawerController.changeEncryptionOption(value);
-                            logger.e(
-                                "${drawerController.currentEncryptionOption}");
-                          }),
+                        title: const Text(
+                          "No encryption",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ).tr(),
+                        activeColor: Colors.blue,
+                        value: drawerController.encryptionOptions[0].toString(),
+                        groupValue:
+                            drawerController.currentEncryptionOption.toString(),
+                        onChanged: (value) {
+                          drawerController.changeEncryptionOption(value);
+                          logger
+                              .e("${drawerController.currentEncryptionOption}");
+                          encryptionKeyController.changeToFalse();
+                          logger.e(encryptionKeyController.encryptionEnabled);
+                        },
+                      ),
                     ),
                     Obx(
                       () => RadioListTile(
@@ -148,46 +134,50 @@ class _DrawerScreenState extends State<DrawerScreen> {
                           drawerController.changeEncryptionOption(value);
                           logger
                               .e("${drawerController.currentEncryptionOption}");
+                          encryptionKeyController.changeTotrue();
+                          logger.e(encryptionKeyController.encryptionEnabled);
                         },
                       ),
                     ),
                     Obx(
                       () => RadioListTile(
-                          title: const Text(
-                            "AES 192",
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          activeColor: Colors.blue,
-                          value:
-                              drawerController.encryptionOptions[3].toString(),
-                          groupValue: drawerController.currentEncryptionOption
-                              .toString(),
-                          onChanged: (value) {
-                            drawerController.changeEncryptionOption(value);
-                            logger.e(
-                                "${drawerController.currentEncryptionOption}");
-                          }),
+                        title: const Text(
+                          "AES 192",
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                        activeColor: Colors.blue,
+                        value: drawerController.encryptionOptions[3].toString(),
+                        groupValue:
+                            drawerController.currentEncryptionOption.toString(),
+                        onChanged: (value) {
+                          drawerController.changeEncryptionOption(value);
+                          logger
+                              .e("${drawerController.currentEncryptionOption}");
+                          encryptionKeyController.changeTotrue();
+                          logger.e(encryptionKeyController.encryptionEnabled);
+                        },
+                      ),
                     ),
                     Obx(
                       () => RadioListTile(
-                          title: const Text(
-                            "AES 256",
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          activeColor: Colors.blue,
-                          value:
-                              drawerController.encryptionOptions[2].toString(),
-                          groupValue: drawerController.currentEncryptionOption
-                              .toString(),
-                          onChanged: (value) {
-                            drawerController.changeEncryptionOption(value);
-                            logger.e(
-                                "${drawerController.currentEncryptionOption}");
-                          }),
+                        title: const Text(
+                          "AES 256",
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                        activeColor: Colors.blue,
+                        value: drawerController.encryptionOptions[2].toString(),
+                        groupValue:
+                            drawerController.currentEncryptionOption.toString(),
+                        onChanged: (value) {
+                          drawerController.changeEncryptionOption(value);
+                          logger
+                              .e("${drawerController.currentEncryptionOption}");
+                          encryptionKeyController.changeTotrue();
+                          logger.e(encryptionKeyController.encryptionEnabled);
+                        },
+                      ),
                     ),
                   ],
                 );
@@ -229,39 +219,39 @@ class _DrawerScreenState extends State<DrawerScreen> {
                   children: [
                     Obx(
                       () => RadioListTile(
-                          title: const Text(
-                            "Uzbek",
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold),
-                          ).tr(),
-                          activeColor: Colors.blue,
-                          value: drawerController.languageOptions[0].toString(),
-                          groupValue:
-                              drawerController.currentLanguageOption.toString(),
-                          onChanged: (value) {
-                            drawerController.changeLanguageOption(value);
-                            context.setLocale(const Locale('uz', 'UZ'));
-                            Get.updateLocale(const Locale('uz', 'UZ'));
-                          }),
+                        title: const Text(
+                          "Uzbek",
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ).tr(),
+                        activeColor: Colors.blue,
+                        value: drawerController.languageOptions[0].toString(),
+                        groupValue:
+                            drawerController.currentLanguageOption.toString(),
+                        onChanged: (value) {
+                          drawerController.changeLanguageOption(value);
+                          context.setLocale(const Locale('uz', 'UZ'));
+                          Get.updateLocale(const Locale('uz', 'UZ'));
+                        },
+                      ),
                     ),
                     Obx(
                       () => RadioListTile(
-                          title: const Text(
-                            "Russian",
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold),
-                          ).tr(),
-                          activeColor: Colors.blue,
-                          value: drawerController.languageOptions[1].toString(),
-                          groupValue:
-                              drawerController.currentLanguageOption.toString(),
-                          onChanged: (value) {
-                            drawerController.changeLanguageOption(value);
-                            context.setLocale(const Locale('ru', 'RU'));
-                            Get.updateLocale(const Locale('ru', 'RU'));
-                          }),
+                        title: const Text(
+                          "Russian",
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ).tr(),
+                        activeColor: Colors.blue,
+                        value: drawerController.languageOptions[1].toString(),
+                        groupValue:
+                            drawerController.currentLanguageOption.toString(),
+                        onChanged: (value) {
+                          drawerController.changeLanguageOption(value);
+                          context.setLocale(const Locale('ru', 'RU'));
+                          Get.updateLocale(const Locale('ru', 'RU'));
+                        },
+                      ),
                     ),
                     Obx(
                       () => RadioListTile(
@@ -271,14 +261,12 @@ class _DrawerScreenState extends State<DrawerScreen> {
                               color: Colors.blue, fontWeight: FontWeight.bold),
                         ).tr(),
                         activeColor: Colors.blue,
-                        tileColor: Colors.blue,
                         value: drawerController.languageOptions[2].toString(),
                         groupValue:
                             drawerController.currentLanguageOption.toString(),
                         onChanged: (value) {
                           context.setLocale(const Locale('en', 'US'));
                           Get.updateLocale(const Locale('en', 'US'));
-
                           drawerController.changeLanguageOption(value);
                         },
                       ),
@@ -308,7 +296,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                       const SizedBox(
                         width: 15,
                       ),
-                      Flexible(
+                      Expanded(
                         child: const Text(
                           "Decoded files",
                           overflow: TextOverflow.ellipsis,

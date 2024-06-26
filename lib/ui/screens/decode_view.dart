@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:encrypt/encrypt.dart' as MyEncrypt;
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as mypath;
 import 'package:flutter/material.dart';
@@ -12,9 +12,9 @@ import 'package:lottie/lottie.dart';
 import 'package:stenography/controllers/data_type_controller.dart';
 import 'package:stenography/data/repositories/extensions.dart';
 import 'package:stenography/service/create_folder.dart';
+import '../../controllers/encryption_key_controller.dart';
 import '../../encrypt/decrypt.dart';
 import '../../encrypt/key_generation.dart';
-import '../../service/hive_service.dart';
 import '../../service/image_saver.dart';
 import '../../steno/decode.dart';
 import '../../service/image_picker.dart';
@@ -41,6 +41,9 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
   bool passwordIsVisible = true;
   late AnimationController _controller;
   DataTypeController dataTypeController = Get.put(DataTypeController());
+  EncryptionKeyController encryptionKeyController =
+      Get.put(EncryptionKeyController());
+  String? password;
 
   @override
   void initState() {
@@ -63,9 +66,6 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
     });
 
     log(pickedImage!.path);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${pickedImage!.path}')),
-    );
   }
 
   MyEncrypt.Encrypted readEncryptedFromFile(String filePath) {
@@ -92,8 +92,13 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
   void _decode() async {
     dataTypeController.changeToFalse();
 
-    String password = passwordController.text.trim();
-    if (password.isNotEmpty) {
+    if (encryptionKeyController.encryptionEnabled.value) {
+      password = passwordController.text.trim();
+    } else {
+      password = "123456789";
+    }
+
+    if (password!.isNotEmpty) {
       if (selectedImage != null) {
         setState(() {
           isDecoding = true;
@@ -101,8 +106,8 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
         decodedMessage = await Decode.decode_image_with_message(selectedImage!);
 
         ///gettign AES keys
-        String aesKey = await keyGenFunc(keyLength: 256, password: password);
-        String aesIV = await keyGenFunc(keyLength: 128, password: password);
+        String aesKey = await keyGenFunc(keyLength: 256, password: password!);
+        String aesIV = await keyGenFunc(keyLength: 128, password: password!);
 
         /// Decrypting message
         DecryptWithAES decryptWithAES = DecryptWithAES.text(
@@ -141,22 +146,21 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
             isDecoding = false;
           });
         } catch (e) {
-          /// yashirilgan ma'lumot fayl yoki matn ekanligi quyidagi qator orqali tekshirli
+          /// yashirilgan ma'lumot fayl yoki matn ekanligi quyidagi qator orqali tekshirildi
           dataTypeController.changeToTrue();
           setState(() {
             isDecoding = false;
           });
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Please select an image').tr()),
-        );
+        Get.snackbar("Please select an image".tr(), "",
+            colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
         return;
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Please enter a password').tr()),
-      );
+      Get.snackbar("Please enter a password".tr(), "",
+          colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+
       return;
     }
   }
@@ -171,11 +175,9 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
     setState(() {
       isSaving = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('File saved to: $_path'),
-      ),
-    );
+
+    Get.snackbar("File saved to".tr(), _path!,
+        colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
   }
 
   @override
@@ -191,45 +193,47 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 5, right: 20, left: 20),
-            padding: const EdgeInsets.only(right: 10, left: 10),
-            height: 55,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: TextField(
-                controller: passwordController,
-                obscureText: passwordIsVisible,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(
-                    IconlyBold.lock,
-                    color: Colors.grey,
+          Obx(() => encryptionKeyController.encryptionEnabled.value
+              ? Container(
+                  margin: const EdgeInsets.only(bottom: 5, right: 20, left: 20),
+                  padding: const EdgeInsets.only(right: 10, left: 10),
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        passwordIsVisible = !passwordIsVisible;
-                      });
-                    },
-                    icon: passwordIsVisible
-                        ? const Icon(
-                            Icons.remove_red_eye,
-                            color: Colors.grey,
-                          )
-                        : const Icon(
-                            Icons.visibility_off,
-                            color: Colors.grey,
-                          ),
+                  child: Center(
+                    child: TextField(
+                      controller: passwordController,
+                      obscureText: passwordIsVisible,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(
+                          IconlyBold.lock,
+                          color: Colors.grey,
+                        ),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              passwordIsVisible = !passwordIsVisible;
+                            });
+                          },
+                          icon: passwordIsVisible
+                              ? const Icon(
+                                  Icons.remove_red_eye,
+                                  color: Colors.grey,
+                                )
+                              : const Icon(
+                                  Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                        ),
+                        border: InputBorder.none,
+                        hintText: "Enter password",
+                      ),
+                    ),
                   ),
-                  border: InputBorder.none,
-                  hintText: "Enter password",
-                ),
-              ),
-            ),
-          ),
+                )
+              : SizedBox.shrink()),
           isDecoding
               ? const Text(
                   "Waiting...",
@@ -250,7 +254,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                     children: [
                       SizedBox(
                         height: 200,
-                        width: 200,
+                        width: MediaQuery.of(context).size.width,
                         child: LottieBuilder.asset(
                           "assets/lotties/no_file.json",
                           controller: _controller,

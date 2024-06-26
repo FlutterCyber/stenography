@@ -26,5 +26,9 @@
   "Message": "Message",
   "Encode file": "Encode file",
   "Please select an image": "Please select an image",
-  "Decoded informations": "Please select an image"
+  "Decoded informations": "Please select an image",
+  "Image saved to": "Image saved to",
+  "Please enter a secret message": "Please enter a secret message",
+  "Please pick a file": "Please pick a file"
+
 }
