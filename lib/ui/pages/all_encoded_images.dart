@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:stenography/ui/pages/show_images_page.dart';
+import '../colors.dart';
+import '../screens/tab_item_widget.dart';
 import 'home_page.dart';
 
 class AllEncodedImages extends StatefulWidget {
@@ -16,11 +20,24 @@ class AllEncodedImages extends StatefulWidget {
 class _AllEncodedImagesState extends State<AllEncodedImages> {
   int tabBarIndex = 0;
 
+  // bool platformIs = true bolsa mobil, bool platformIs = false bolsa windows deb oldim
+  bool platformIs = true;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (Platform.isWindows) {
+      setState(() {
+        platformIs = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff3F4E4F),
-
+      backgroundColor: color3,
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
@@ -28,13 +45,13 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
           },
           icon: const Icon(
             Icons.arrow_back,
-            color: Colors.white,
+            color: color5,
           ),
         ),
-        backgroundColor: const Color(0xff3F4E4F),
+        backgroundColor: color3,
         title: const Text(
           "All encoded images",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: color5),
         ).tr(),
         centerTitle: true,
       ),
@@ -44,123 +61,56 @@ class _AllEncodedImagesState extends State<AllEncodedImages> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Container(
-              padding:
-              const EdgeInsets.only(top: 5, bottom: 5, right: 1, left: 1),
-              margin: const EdgeInsets.only(right: 15, left: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xff2C3639),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: TabBar(
-                padding: const EdgeInsets.all(0),
-                indicatorColor: Colors.transparent,
-                dividerColor: Colors.transparent,
-                onTap: (int index) {
-                  setState(() {
-                    tabBarIndex = index;
-                  });
-                },
-                tabs: [
-                  Tab(
-                    child: Container(
-                      padding: const EdgeInsets.only(top: 8, bottom: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(13),
-                        border: Border.all(
-                          color: tabBarIndex == 0
-                              ? Colors.white10
-                              : const Color(0xff2C3639),
-                          width: 1.0,
+            Padding(
+              padding: const EdgeInsets.only(left: 15, right: 15),
+              child: PreferredSize(
+                preferredSize: const Size.fromHeight(40),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  child: Container(
+                    height: 40,
+                    width: platformIs
+                        ? MediaQuery.of(context).size.width
+                        : MediaQuery.of(context).size.width * 0.7,
+                    // margin: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      color: Color(0xff9BBEC8),
+                    ),
+                    child: const TabBar(
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      dividerColor: Colors.transparent,
+                      indicator: BoxDecoration(
+                        color: color1,
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.black54,
+                      tabs: [
+                        TabItem(
+                          title: 'Message',
+                          icon: IconlyBold.message,
                         ),
-                        color: tabBarIndex == 0
-                            ? const Color(0xff3F4E4F)
-                            : const Color(0xff2C3639),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            IconlyBold.message,
-                            color:
-                            tabBarIndex == 0 ? Colors.blue : Colors.grey,
-                            size: 28,
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Flexible(
-                            child: Text(
-                              "Message",
-                              overflow: TextOverflow.ellipsis,
-
-                              style: TextStyle(
-                                  color: tabBarIndex == 0
-                                      ? Colors.white
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 18),
-                            ).tr(),
-                          ),
-                        ],
-                      ),
+                        TabItem(
+                          title: 'File',
+                          icon: IconlyBold.document,
+                        ),
+                      ],
                     ),
                   ),
-                  Tab(
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                          left: 10, right: 20, top: 8, bottom: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(13),
-                        border: Border.all(
-                          color: tabBarIndex == 1
-                              ? Colors.white10
-                              : const Color(0xff2C3639),
-                          width: 1.0,
-                        ),
-                        color: tabBarIndex == 1
-                            ? const Color(0xff3F4E4F)
-                            : const Color(0xff2C3639),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            IconlyBold.document,
-                            color:
-                            tabBarIndex == 1 ? Colors.blue : Colors.grey,
-                            size: 28,
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            "File",
-                            style: TextStyle(
-                              color: tabBarIndex == 1
-                                  ? Colors.white
-                                  : Colors.grey,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18,
-                            ),
-                          ).tr()
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             Expanded(
                 child: TabBarView(
-                  children: [
-                    ShowImagesPage(fileType: "message_image"),
-                    ShowImagesPage(fileType: "file_image"),
+              children: [
+                ShowImagesPage(fileType: "message_image"),
+                ShowImagesPage(fileType: "file_image"),
 
-                    //EncodedImagesWithMessagePage(),
-                    //EncodedImagesWithFilePage(),
-                  ],
-                ))
+                //EncodedImagesWithMessagePage(),
+                //EncodedImagesWithFilePage(),
+              ],
+            ))
           ],
         ),
       ),

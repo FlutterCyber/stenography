@@ -50,7 +50,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Shield',
+                    'Hide',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,

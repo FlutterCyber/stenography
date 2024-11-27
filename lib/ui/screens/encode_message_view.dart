@@ -1,17 +1,22 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:iconly/iconly.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../controllers/encryption_key_controller.dart';
 import '../../encrypt/encrypt.dart';
 import '../../encrypt/key_generation.dart';
+import '../../service/encrypt_message.dart';
+import '../../service/get_encoded_image.dart';
 import '../../steno/encode.dart';
 import '../../service/image_picker.dart';
 import '../../service/image_saver.dart';
+import '../colors.dart';
 
 class EncodeMessageView extends StatefulWidget {
   const EncodeMessageView({Key? key}) : super(key: key);
@@ -38,10 +43,11 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
       Get.put(EncryptionKeyController());
   String? password;
 
-  Future getEncodedImage({required String secretMessage}) async {
-    encodedImage = await Encode.hideMessageInImage(
-      image: selectedImage!,
-      secretMessage: secretMessage,
+
+  void _shareImage(String imagePath) async {
+    await Share.shareXFiles(
+      [XFile(imagePath, mimeType: 'application/octet-stream')],
+      text: 'Great picture',
     );
   }
 
@@ -65,11 +71,13 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
           String aesIV = await keyGenFunc(keyLength: 128, password: password!);
 
           /// encrypting message
-          EncrpytWithAES encrpytWithAES = EncrpytWithAES.forText(
-              aesKey: aesKey, aesIV: aesIV, plainText: plainText);
-          String secretMessage = encrpytWithAES.encryptText().base64;
+          String secretMessage = await compute(encryptyMessage,
+              {"aesKey": aesKey, "aesIV": aesIV, "plainText": plainText});
 
-          await getEncodedImage(secretMessage: secretMessage);
+          encodedImage = await compute(getEncodedImage, {
+            'image': selectedImage!,
+            'secretMessage': secretMessage,
+          });
           setState(() {
             isEncoding = false;
           });
@@ -149,7 +157,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff2C3639),
+      backgroundColor: color3,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -159,7 +167,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
                   padding: const EdgeInsets.only(right: 10, left: 10),
                   height: 55,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: color4,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -189,6 +197,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
                         ),
                         border: InputBorder.none,
                         hintText: "Enter password",
+                        hintStyle: const TextStyle(color: Colors.grey),
                       ),
                     ),
                   ),
@@ -203,7 +212,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
                         height: 200,
                         width: MediaQuery.of(context).size.width,
                         child: LottieBuilder.asset(
-                          "assets/lotties/no_file.json",
+                          "assets/lotties/1234.json",
                           controller: _controller,
                           onLoaded: (composition) {
                             _controller.duration = composition.duration;
@@ -214,7 +223,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
                       const Text(
                         "File is empty",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: color5,
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
@@ -229,37 +238,60 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
                           ? Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text(
-                                  "Waiting...",
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ).tr(),
+                                Container(
+                                    padding: const EdgeInsets.all(10),
+                                    child: const CircularProgressIndicator()),
                               ],
                             )
                           : const SizedBox.shrink(),
-                      SizedBox(
+                      Container(
+                        height: 300,
                         width: double.infinity,
-                        child: Center(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: FileImage(
+                              File(selectedImage!.path),
+                            ),
+                          ),
+                        ),
+                        margin: const EdgeInsets.all(20),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(13.0),
+                          // Set your desired border radius here
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(13),
-                                ),
-                                margin: const EdgeInsets.all(20),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(13.0),
-                                  child: Image.file(
-                                    selectedImage!,
-                                    fit: BoxFit.cover,
+                                  color: Colors.white.withOpacity(0.5),
+                                  borderRadius: const BorderRadius.only(
+                                    bottomRight: Radius.circular(10),
+                                    bottomLeft: Radius.circular(10),
                                   ),
                                 ),
-                              ),
+                                child: encodedImage != null
+                                    ? Row(
+                                        children: [
+                                          Expanded(
+                                            child: IconButton(
+                                              onPressed: () => _shareImage(
+                                                  encodedImage!.path),
+                                              icon: const Icon(
+                                                Icons.share,
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            height: 40,
+                                            width: 1,
+                                            color: Colors.grey,
+                                          ),
+                                        ],
+                                      )
+                                    : const SizedBox.shrink(),
+                              )
                             ],
                           ),
                         ),
@@ -274,7 +306,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
       floatingActionButton: Container(
         width: double.infinity,
         height: 50,
-        color: const Color(0xff3F4E4F),
+        color: color4,
         child: Row(
           children: [
             IconButton(
@@ -283,14 +315,14 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
               },
               icon: const Icon(
                 Icons.attach_file_outlined,
-                color: Color(0xffDCD7C9),
+                color: color5,
               ),
             ),
             Expanded(
               child: TextField(
                 controller: textEditingController,
                 style: const TextStyle(
-                  color: Color(0xffDCD7C9),
+                  color: color5,
                 ),
                 decoration: const InputDecoration(
                   hintText: 'Type your secret message',
@@ -305,7 +337,7 @@ class _EncodeMessageViewState extends State<EncodeMessageView>
               },
               icon: const Icon(
                 IconlyBold.lock,
-                color: Colors.blue,
+                color: Colors.orange,
               ),
             ),
           ],

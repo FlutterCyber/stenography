@@ -2,20 +2,15 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:steganograph/steganograph.dart';
 
-import '../service/create_folder.dart';
-
 class Encode {
   static File? encodedImage;
 
   static hideMessageInImage(
       {required File image, required String secretMessage}) async {
-    Directory? stenoDirectory = await CreateFolder.messageImageFolder();
-
     try {
       encodedImage = await Steganograph.encode(
         image: image,
         message: secretMessage,
-        outputFilePath: stenoDirectory.toString(),
       );
       log("Message encoding success");
     } catch (e) {
@@ -25,15 +20,13 @@ class Encode {
   }
 
   static hideFileInImage({required File image, required File file}) async {
-    Directory? stenoDirectory = await CreateFolder.fileImageFolder();
-
     try {
       encodedImage = await Steganograph.encodeFile(
         image: image,
         fileToEmbed: file,
-        outputFilePath: stenoDirectory.toString(),
       );
-      log("FILE ENCODE SUCCESS");
+
+      log("FILE ENCODE SUCCESS ${encodedImage!.path}");
     } catch (e) {
       log("FILE ENCODE ERROR:: $e");
     }

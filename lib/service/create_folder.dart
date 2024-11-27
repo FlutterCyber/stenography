@@ -6,15 +6,15 @@ class CreateFolder {
   static Future<Directory?> messageImageFolder() async {
     Directory? directory;
     Directory? stenoDirectory;
+    Directory myFilesDirectory;
+
     try {
-      // if (Platform.isAndroid) {
-      //   stenoDirectory =
-      //       Directory('/storage/emulated/0/Download/steno/message_image/');
-      // } else if (Platform.isIOS) {
-      //   final myFilesDirectory = await getApplicationDocumentsDirectory();
-      //   stenoDirectory = Directory('${myFilesDirectory.path}/message_image/');
-      // }
-      final myFilesDirectory = await getApplicationDocumentsDirectory();
+      if (Platform.isWindows) {
+        myFilesDirectory = Directory('${Platform.environment['USERPROFILE']!}/Desktop/Steno');
+      } else {
+        myFilesDirectory = await getApplicationDocumentsDirectory();
+      }
+
       stenoDirectory = Directory('${myFilesDirectory.path}/message_image/');
 
       if (!(await stenoDirectory.exists())) {
@@ -34,21 +34,20 @@ class CreateFolder {
   static Future<Directory?> fileImageFolder() async {
     Directory? directory;
     Directory? stenoDirectory;
+    Directory myFilesDirectory;
+
     try {
-      // if (Platform.isAndroid) {
-      //   stenoDirectory =
-      //       Directory('/storage/emulated/0/Download/steno/file_image/');
-      // } else if (Platform.isIOS) {
-      //   final myFilesDirectory = await getApplicationDocumentsDirectory();
-      //   stenoDirectory = Directory('${myFilesDirectory.path}/file_image/');
-      // }
-      final myFilesDirectory = await getApplicationDocumentsDirectory();
+      if (Platform.isWindows) {
+        myFilesDirectory = Directory('${Platform.environment['USERPROFILE']!}/Desktop/Steno');
+      } else {
+        myFilesDirectory = await getApplicationDocumentsDirectory();
+      }
       stenoDirectory = Directory('${myFilesDirectory.path}/file_image/');
 
       if (!(await stenoDirectory.exists())) {
         await stenoDirectory.create(recursive: true);
         directory = stenoDirectory;
-        log("STENO DIRECTORY CREATED SUCCESSFULLY:: $stenoDirectory");
+        log("STENO DIRECTORY CREATED SUCCESSFULLY: $stenoDirectory");
       } else if (await stenoDirectory.exists()) {
         log("STENO DIRECTORY ALREADY EXIST");
         directory = stenoDirectory;
@@ -62,19 +61,14 @@ class CreateFolder {
   static Future<Directory?> decodedFileFolder() async {
     Directory? directory;
     Directory? stenoDirectory;
+    Directory myFilesDirectory;
+
     try {
-      // if (Platform.isAndroid) {
-      //   stenoDirectory =
-      //       Directory('/storage/emulated/0/Download/steno/decoded_files/');
-      // } else if (Platform.isIOS) {
-      //   final myFilesDirectory = await getApplicationDocumentsDirectory();
-      //   stenoDirectory = Directory('${myFilesDirectory.path}/decoded_files/');
-      // }
-      // final myFilesDirectory = await getExternalStorageDirectory();
-      // final stenoDirectory = Directory('${myFilesDirectory!.path}/file_image');
-      // final stenoDirectory =
-      // Directory('/storage/emulated/0/Download/steno/decoded_files');
-      final myFilesDirectory = await getApplicationDocumentsDirectory();
+      if (Platform.isWindows) {
+        myFilesDirectory = Directory('${Platform.environment['USERPROFILE']!}/Desktop/Steno');
+      } else {
+        myFilesDirectory = await getApplicationDocumentsDirectory();
+      }
       stenoDirectory = Directory('${myFilesDirectory.path}/decoded_files/');
 
       if (!(await stenoDirectory.exists())) {
@@ -94,22 +88,15 @@ class CreateFolder {
   static Future<Directory?> decryptedFileFolder() async {
     Directory? directory;
     Directory? stenoDirectory;
+    Directory myFilesDirectory;
+
     try {
-      // final myFilesDirectory = await getExternalStorageDirectory();
-      // final stenoDirectory = Directory('${myFilesDirectory!.path}/file_image');
-      // final stenoDirectory =
-      // Directory('/storage/emulated/0/Download/steno/decrypted_files');
-      // if (Platform.isAndroid) {
-      //   stenoDirectory =
-      //       Directory('/storage/emulated/0/Download/steno/decrypted_files/');
-      // } else if (Platform.isIOS) {
-      //   final myFilesDirectory = await getApplicationDocumentsDirectory();
-      //   stenoDirectory =
-      //       Directory('${myFilesDirectory.path}/decrypted_files/');
-      // }
-      final myFilesDirectory = await getApplicationDocumentsDirectory();
-      stenoDirectory =
-          Directory('${myFilesDirectory.path}/decrypted_files/');
+      if (Platform.isWindows) {
+        myFilesDirectory = Directory('${Platform.environment['USERPROFILE']!}/Desktop/Steno');
+      } else {
+        myFilesDirectory = await getApplicationDocumentsDirectory();
+      }
+      stenoDirectory = Directory('${myFilesDirectory.path}/decrypted_files/');
 
       if (!(await stenoDirectory.exists())) {
         await stenoDirectory.create(recursive: true);

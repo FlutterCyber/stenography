@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:stenography/ui/colors.dart';
 import '../../service/get_image_paths.dart';
 
 class ShowImagesPage extends StatefulWidget {
@@ -18,6 +20,10 @@ class ShowImagesPage extends StatefulWidget {
 class _ShowImagesPageState extends State<ShowImagesPage>
     with TickerProviderStateMixin {
   late AnimationController _controller;
+
+  // bool platformIs = true bolsa mobil, bool platformIs = false bolsa windows deb oldim
+  bool platformIs = true;
+  bool waitForMe = true;
 
   // Function to share image
   void _shareImage(String imagePath) async {
@@ -45,6 +51,12 @@ class _ShowImagesPageState extends State<ShowImagesPage>
         _controller.stop();
       }
     });
+    if (Platform.isWindows) {
+      setState(() {
+        platformIs = false;
+      });
+    }
+    waitMe();
   }
 
   @override
@@ -54,22 +66,22 @@ class _ShowImagesPageState extends State<ShowImagesPage>
     _controller.dispose();
   }
 
+  void waitMe() {
+    Timer(const Duration(milliseconds: 500), () {
+      setState(() {
+        waitForMe = false;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff3F4E4F),
+      backgroundColor: color3,
       body: Padding(
         padding: const EdgeInsets.all(10),
-        child: FutureBuilder<List<String>>(
-          future:
-              getExternalStorageImagePaths(path: widget.fileType.toString()),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator(); // Display a loading indicator while fetching image paths.
-            } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return SizedBox(
+        child: waitForMe
+            ? SizedBox(
                 width: double.infinity,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -90,79 +102,124 @@ class _ShowImagesPageState extends State<ShowImagesPage>
                     const Text(
                       "File is empty",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: color5,
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
                       ),
                     ).tr(),
                   ],
                 ),
-              );
-            } else {
-              return GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 15,
-                  crossAxisSpacing: 15,
-                ),
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  final imagePath = snapshot.data![index];
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(10),
-                      image: DecorationImage(
-                        fit: BoxFit.cover,
-                        image: FileImage(
-                          File(imagePath),
-                        ),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
+              )
+            : FutureBuilder<List<String>>(
+                future: getExternalStorageImagePaths(
+                    path: widget.fileType.toString()),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
+                        CircularProgressIndicator(),
+                      ],
+                    ); // Display a loading indicator while fetching image paths.
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 200,
+                            width: 200,
+                            child: LottieBuilder.asset(
+                              "assets/lotties/no_file.json",
+                              controller: _controller,
+                              onLoaded: (composition) {
+                                _controller.duration = composition.duration;
+                                _controller.forward();
+                              },
+                            ),
+                          ),
+                          const Text(
+                            "File is empty",
+                            style: TextStyle(
+                              color: color5,
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ).tr(),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: platformIs ? 2 : 10,
+                        mainAxisSpacing: 15,
+                        crossAxisSpacing: 15,
+                      ),
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        final imagePath = snapshot.data![index];
+                        return Container(
                           decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.5),
-                              borderRadius: const BorderRadius.only(
-                                bottomRight: Radius.circular(10),
-                                bottomLeft: Radius.circular(10),
-                              )),
-                          child: Row(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(10),
+                            image: DecorationImage(
+                              fit: BoxFit.cover,
+                              image: FileImage(
+                                File(imagePath),
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Expanded(
-                                child: IconButton(
-                                  onPressed: () => _shareImage(imagePath),
-                                  icon: const Icon(
-                                    Icons.share,
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.5),
+                                  borderRadius: const BorderRadius.only(
+                                    bottomRight: Radius.circular(10),
+                                    bottomLeft: Radius.circular(10),
                                   ),
                                 ),
-                              ),
-                              Container(
-                                height: 40,
-                                width: 1,
-                                color: Colors.grey,
-                              ),
-                              Expanded(
-                                child: IconButton(
-                                  onPressed: () => _deleteImage(imagePath),
-                                  icon: const Icon(
-                                    Icons.delete,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: IconButton(
+                                        onPressed: () => _shareImage(imagePath),
+                                        icon: const Icon(
+                                          Icons.share,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 40,
+                                      width: 1,
+                                      color: Colors.grey,
+                                    ),
+                                    Expanded(
+                                      child: IconButton(
+                                        onPressed: () =>
+                                            _deleteImage(imagePath),
+                                        icon: const Icon(
+                                          Icons.delete,
+                                        ),
+                                      ),
+                                    )
+                                  ],
                                 ),
                               )
                             ],
                           ),
-                        )
-                      ],
-                    ),
-                  );
+                        );
+                      },
+                    );
+                  }
                 },
-              );
-            }
-          },
-        ),
+              ),
       ),
     );
   }

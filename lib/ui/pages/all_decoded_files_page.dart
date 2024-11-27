@@ -95,7 +95,7 @@ class _AllDecodedFilesPageState extends State<AllDecodedFilesPage>
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: FutureBuilder<List<String>>(
-          future: getExternalStorageImagePaths(path: "decoded_files"),
+          future: getExternalStorageImagePaths(path: "decrypted_files"),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator(); // Display a loading indicator while fetching image paths.

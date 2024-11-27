@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
 import 'package:logger/logger.dart';
 import 'package:stenography/service/create_folder.dart';
+import 'package:stenography/ui/colors.dart';
 import 'package:stenography/ui/screens/drawer.dart';
 import '../../controllers/encryption_key_controller.dart';
 import '../../controllers/tab_bar_controller.dart';
@@ -56,18 +57,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return Scaffold(
       drawer: const DrawerScreen(),
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Color(0xffDCD7C9)),
-        backgroundColor: const Color(0xff3F4E4F),
+        iconTheme: const IconThemeData(color: color5),
+        backgroundColor: color2,
         title: const Text(
-          "Shield",
+          "Hide",
           style: TextStyle(
-            color: Color(0xffDCD7C9),
+            color: color5,
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
       ),
-      backgroundColor: const Color(0xff2C3639),
+      backgroundColor: const Color(0xffEEF7FF),
       body: DefaultTabController(
         initialIndex: 0,
         length: 2,
@@ -94,7 +95,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(13),
                         color:
-                            controller.index == 0 ? Colors.blue : Colors.white,
+                            controller.index == 0 ? Color(0xff4D869C) : Colors.white,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -102,11 +103,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           CircleAvatar(
                             backgroundColor: controller.index == 0
                                 ? Colors.white
-                                : Colors.blue,
+                                : color1,
                             child: Icon(
                               IconlyLight.lock,
                               color: controller.index == 0
-                                  ? Colors.blue
+                                  ? color1
                                   : Colors.white,
                             ),
                           ),
@@ -118,7 +119,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             style: TextStyle(
                                 color: controller.index == 0
                                     ? Colors.white
-                                    : Colors.blue,
+                                    : color1,
                                 fontWeight: FontWeight.w600),
                           ).tr(),
                         ],
@@ -132,7 +133,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(13),
                         color:
-                            controller.index == 1 ? Colors.blue : Colors.white,
+                            controller.index == 1 ? color1 : Colors.white,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -140,11 +141,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           CircleAvatar(
                             backgroundColor: controller.index == 1
                                 ? Colors.white
-                                : Colors.blue,
+                                : color1,
                             child: Icon(
                               IconlyLight.unlock,
                               color: controller.index == 1
-                                  ? Colors.blue
+                                  ? color1
                                   : Colors.white,
                             ),
                           ),
@@ -156,7 +157,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             style: TextStyle(
                                 color: controller.index == 1
                                     ? Colors.white
-                                    : Colors.blue,
+                                    : color1,
                                 fontWeight: FontWeight.w600),
                           ).tr(),
                         ],
@@ -197,7 +198,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: const Text(
                       "All encoded images",
                       style: TextStyle(
-                          color: Colors.blue,
+                          color: Color(0xff4D869C),
                           fontWeight: FontWeight.bold,
                           fontSize: 15),
                     ).tr(),

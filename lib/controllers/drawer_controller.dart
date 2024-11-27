@@ -9,8 +9,8 @@ class MyDrawerController extends GetxController {
   List<String> encryptionOptions = [
     "No Encryption",
     "AES 128",
-    "AES 256",
-    "AES 512"
+    "AES 192",
+    "AES 256"
   ];
   List<String> languageOptions = [
     "Uzbek",

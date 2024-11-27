@@ -1,20 +1,24 @@
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:stenography/service/file_picker.dart';
 import '../../controllers/encryption_key_controller.dart';
-import '../../encrypt/encrypt.dart';
 import '../../encrypt/key_generation.dart';
-import '../../steno/encode.dart';
+import '../../service/encrypt_file.dart';
+import '../../service/get_encoded_image_with_file.dart';
 import '../../service/image_picker.dart';
 import '../../service/image_saver.dart';
 import 'package:encrypt/encrypt.dart' as MyEncrypt;
 import 'package:get/get.dart' hide Trans;
+
+import '../colors.dart';
 
 class EncodeFileView extends StatefulWidget {
   const EncodeFileView({Key? key}) : super(key: key);
@@ -44,37 +48,34 @@ class _EncodeFileViewState extends State<EncodeFileView>
   bool passwordIsVisible = true;
   var logger = Logger();
 
-  Future getEncodedImageWithFile({required File file}) async {
-    encodedImage =
-        await Encode.hideFileInImage(image: selectedImage!, file: file);
-  }
-
   /// converting Encrypted data type to file data type
   File saveEncryptedToFile(MyEncrypt.Encrypted encryptedData, String fileName) {
     final tempFilePath = getTemporaryFilePath(fileName);
     final file = File(tempFilePath);
-
     // Convert Encrypted to List<int>
     final List<int> encryptedBytes = encryptedData.bytes;
-
     // Write encrypted bytes to the file
     file.writeAsBytesSync(encryptedBytes);
-
     print('Encrypted data saved to: $tempFilePath');
     return file;
   }
 
   String getTemporaryFilePath(String fileName) {
-    // Get the temporary directory
     final tempDir = Directory.systemTemp;
-
-    // Generate a unique file name
-    final uniqueFileName = '${DateTime.now()}_$fileName';
-
+    final DateTime now = DateTime.now();
+    final DateFormat formatter = DateFormat('yyyy-MM-dd_HH-mm-ss');
+    final String formattedDate = formatter.format(now);
+    final String uniqueFileName = '${formattedDate}_$fileName';
     // Combine the temporary directory and the unique file name to get the temporary file path
     final tempFilePath = path.join(tempDir.path, uniqueFileName);
-
     return tempFilePath;
+  }
+
+  void _shareImage(String imagePath) async {
+    await Share.shareXFiles(
+      [XFile(imagePath, mimeType: 'application/octet-stream')],
+      text: 'Great picture',
+    );
   }
 
   Future<void> _encodeFile() async {
@@ -85,25 +86,30 @@ class _EncodeFileViewState extends State<EncodeFileView>
     }
 
     if (password!.isNotEmpty) {
-      ///gettign AES keys
-      String aesKey = await keyGenFunc(keyLength: 256, password: password!);
-      String aesIV = await keyGenFunc(keyLength: 128, password: password!);
-
       if (selectedImage != null) {
         if (pickedFile != null) {
           setState(() {
             isEncoding = true;
           });
 
-          /// encrypting file
-          EncrpytWithAES encrpytWithAES = EncrpytWithAES.forFile(
-              aesKey: aesKey, aesIV: aesIV, file: pickedFile);
+          ///gettign AES keys
+          String aesKey = await keyGenFunc(keyLength: 256, password: password!);
+          String aesIV = await keyGenFunc(keyLength: 128, password: password!);
 
-          /// getting encrypted data
-          MyEncrypt.Encrypted encrypted = await encrpytWithAES.encryptFile();
+          /// encrypting file
+          MyEncrypt.Encrypted encrypted = await compute(encryptFile, {
+            "aesKey": aesKey,
+            "aesIV": aesIV,
+            "pickedFile": pickedFile,
+          });
+
           File encryptedFile = saveEncryptedToFile(encrypted, "abdusattor");
 
-          await getEncodedImageWithFile(file: encryptedFile);
+          ///await getEncodedImageWithFile(file: encryptedFile);
+          encodedImage = await compute(getEncodedImageWithFile, {
+            'image': selectedImage!,
+            'file': encryptedFile,
+          });
           setState(() {
             isEncoding = false;
           });
@@ -142,7 +148,6 @@ class _EncodeFileViewState extends State<EncodeFileView>
     setState(() {
       isEncoding = false;
     });
-
     Get.snackbar("Image saved to".tr(), _path!,
         colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
   }
@@ -153,7 +158,6 @@ class _EncodeFileViewState extends State<EncodeFileView>
     setState(() {
       selectedImage = pickedImage;
     });
-
     print(pickedImage!.path);
   }
 
@@ -189,9 +193,8 @@ class _EncodeFileViewState extends State<EncodeFileView>
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      backgroundColor: const Color(0xff2C3639),
+      backgroundColor: const Color(0xff2EEF7FF),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -201,7 +204,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                   padding: const EdgeInsets.only(right: 10, left: 10),
                   height: 55,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: Color(0xffCDE8E5),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -209,33 +212,33 @@ class _EncodeFileViewState extends State<EncodeFileView>
                       controller: passwordController,
                       obscureText: passwordIsVisible,
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(
-                          IconlyBold.lock,
-                          color: Colors.grey,
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              passwordIsVisible = !passwordIsVisible;
-                            });
-                          },
-                          icon: passwordIsVisible
-                              ? const Icon(
-                                  Icons.remove_red_eye,
-                                  color: Colors.grey,
-                                )
-                              : const Icon(
-                                  Icons.visibility_off,
-                                  color: Colors.grey,
-                                ),
-                        ),
-                        border: InputBorder.none,
-                        hintText: "Enter password",
-                      ),
+                          prefixIcon: const Icon(
+                            IconlyBold.lock,
+                            color: Colors.grey,
+                          ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                passwordIsVisible = !passwordIsVisible;
+                              });
+                            },
+                            icon: passwordIsVisible
+                                ? const Icon(
+                                    Icons.remove_red_eye,
+                                    color: Colors.grey,
+                                  )
+                                : const Icon(
+                                    Icons.visibility_off,
+                                    color: Colors.grey,
+                                  ),
+                          ),
+                          border: InputBorder.none,
+                          hintText: "Enter password",
+                          hintStyle: const TextStyle(color: Colors.grey)),
                     ),
                   ),
                 )
-              : SizedBox.shrink()),
+              : const SizedBox.shrink()),
           selectedImage == null
               ? Expanded(
                   child: Column(
@@ -245,7 +248,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                         height: 200,
                         width: MediaQuery.of(context).size.width,
                         child: LottieBuilder.asset(
-                          "assets/lotties/1.json",
+                          "assets/lotties/emp.json",
                           controller: _controller,
                           onLoaded: (composition) {
                             _controller.duration = composition.duration;
@@ -256,7 +259,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                       const Text(
                         "File is empty",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: color5,
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
@@ -275,14 +278,9 @@ class _EncodeFileViewState extends State<EncodeFileView>
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               isEncoding
-                                  ? const Text(
-                                      "Waiting...",
-                                      style: TextStyle(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ).tr()
+                                  ? Container(
+                                      padding: const EdgeInsets.all(10),
+                                      child: const CircularProgressIndicator())
                                   : const SizedBox.shrink(),
                               const SizedBox(
                                 height: 20,
@@ -294,7 +292,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                                       children: [
                                         const Icon(
                                           Icons.file_present_rounded,
-                                          color: Colors.white70,
+                                          color: color4,
                                           size: 60,
                                         ),
                                         const SizedBox(
@@ -303,7 +301,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                                         const Text(
                                           "Attach \nsecret file",
                                           style: TextStyle(
-                                            color: Colors.white,
+                                            color: color5,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 17,
                                           ),
@@ -319,7 +317,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                                         children: [
                                           const Icon(
                                             Icons.file_open_rounded,
-                                            color: Colors.white70,
+                                            color: color4,
                                             size: 60,
                                           ),
                                           const SizedBox(
@@ -333,7 +331,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                                                 const Text(
                                                   "Attached file's name is:",
                                                   style: TextStyle(
-                                                    color: Colors.white,
+                                                    color: color5,
                                                     fontSize: 17,
                                                   ),
                                                 ).tr(),
@@ -355,17 +353,56 @@ class _EncodeFileViewState extends State<EncodeFileView>
                                       ),
                                     ),
                               Container(
+                                height: 300,
+                                width: double.infinity,
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(13),
+                                  borderRadius: BorderRadius.circular(10),
+                                  image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: FileImage(
+                                      File(selectedImage!.path),
+                                    ),
+                                  ),
                                 ),
                                 margin: const EdgeInsets.all(20),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(13.0),
                                   // Set your desired border radius here
-
-                                  child: Image.file(
-                                    selectedImage!,
-                                    fit: BoxFit.cover,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.5),
+                                          borderRadius: const BorderRadius.only(
+                                            bottomRight: Radius.circular(10),
+                                            bottomLeft: Radius.circular(10),
+                                          ),
+                                        ),
+                                        child: encodedImage != null
+                                            ? Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: IconButton(
+                                                      onPressed: () =>
+                                                          _shareImage(
+                                                              encodedImage!
+                                                                  .path),
+                                                      icon: const Icon(
+                                                        Icons.share,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    height: 40,
+                                                    width: 1,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ],
+                                              )
+                                            : const SizedBox.shrink(),
+                                      )
+                                    ],
                                   ),
                                 ),
                               ),
@@ -386,7 +423,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
       floatingActionButton: Container(
         width: double.infinity,
         height: 60,
-        color: const Color(0xff3F4E4F),
+        color: const Color(0xffCDE8E5),
         child: Row(
           children: [
             IconButton(
@@ -395,7 +432,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
               },
               icon: const Icon(
                 Icons.attach_file_outlined,
-                color: Color(0xffDCD7C9),
+                color: Color(0xff201E43),
               ),
             ),
             Expanded(
@@ -409,7 +446,7 @@ class _EncodeFileViewState extends State<EncodeFileView>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Color(0xff4D869C),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,

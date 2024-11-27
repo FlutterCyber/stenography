@@ -1,45 +1,46 @@
 import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 Future<List<String>> getExternalStorageImagePaths(
     {required String path}) async {
-  Directory? directory;
-  // if (Platform.isAndroid) {
-  //   directory = Directory('/storage/emulated/0/Download/steno/$path');
-  // } else if (Platform.isIOS) {
-  //   final myFilesDirectory = await getApplicationDocumentsDirectory();
-  //   directory = Directory('${myFilesDirectory.path}/$path');
-  // }
-  final myFilesDirectory = await getApplicationDocumentsDirectory();
-  directory = Directory('${myFilesDirectory.path}/$path');
+  Directory? myFilesDirectory;
 
-  final List<FileSystemEntity> files = Directory(directory!.path).listSync();
+  if (Platform.isWindows) {
+    myFilesDirectory = Directory("C:/Users/user1/Desktop/Steno");
+  } else {
+    myFilesDirectory = await getApplicationDocumentsDirectory();
+  }
 
+  return await compute(_getImagePaths, '${myFilesDirectory.path}/$path');
+}
+
+List<String> _getImagePaths(String directoryPath) {
+  final List<FileSystemEntity> files = Directory(directoryPath).listSync();
   final imagePaths = <String>[];
   for (var file in files) {
     if (file is File) {
       final extension = file.path.split('.').last.toLowerCase();
-      if (extension == 'jpg' ||
-          extension == 'png' ||
-          extension == 'jpeg' ||
-          extension == 'pdf' ||
-          extension == 'doc' ||
-          extension == 'docx' ||
-          extension == 'mp3' ||
-          extension == 'mp4' ||
-          extension == 'doc' ||
-          extension == 'tiff' ||
-          extension == 'bmp' ||
-          extension == 'mpeg' ||
-          extension == 'mkv' ||
-          extension == 'wmv' ||
-          extension == 'webm' ||
-          extension == 'vob') {
+      if ([
+        'jpg',
+        'png',
+        'jpeg',
+        'pdf',
+        'doc',
+        'docx',
+        'mp3',
+        'mp4',
+        'tiff',
+        'bmp',
+        'mpeg',
+        'mkv',
+        'wmv',
+        'webm',
+        'vob'
+      ].contains(extension)) {
         imagePaths.add(file.path);
       }
     }
   }
-
   return imagePaths;
 }

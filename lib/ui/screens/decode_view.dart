@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:encrypt/encrypt.dart' as MyEncrypt;
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as mypath;
@@ -12,11 +13,14 @@ import 'package:lottie/lottie.dart';
 import 'package:stenography/controllers/data_type_controller.dart';
 import 'package:stenography/data/repositories/extensions.dart';
 import 'package:stenography/service/create_folder.dart';
+import 'package:stenography/ui/colors.dart';
 import '../../controllers/encryption_key_controller.dart';
 import '../../encrypt/decrypt.dart';
 import '../../encrypt/key_generation.dart';
+import '../../service/decrypt_message.dart';
+import '../../service/get_decoded_file.dart';
+import '../../service/get_decoded_message.dart';
 import '../../service/image_saver.dart';
-import '../../steno/decode.dart';
 import '../../service/image_picker.dart';
 
 class DecodeView extends StatefulWidget {
@@ -70,20 +74,21 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
 
   MyEncrypt.Encrypted readEncryptedFromFile(String filePath) {
     final file = File(filePath);
-
     // Read encrypted bytes from the file
     final encryptedBytes = file.readAsBytesSync();
-
     // Create an Encrypted object using the bytes
     final encryptedData = MyEncrypt.Encrypted(encryptedBytes);
-
     return encryptedData;
   }
 
   Future<File> createFileFromBytes(
       {required List<int> fileBytes, required String fileExtension}) async {
     final folder = await CreateFolder.decryptedFileFolder();
-    final uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+    // final uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+    final DateTime now = DateTime.now();
+    final DateFormat formatter = DateFormat('yyyy-MM-dd_HH-mm-ss');
+    final String uniqueFileName = formatter.format(now);
+
     final file = File('${folder!.path}/$uniqueFileName.$fileExtension');
     file.writeAsBytesSync(fileBytes);
     return file;
@@ -91,7 +96,6 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
 
   void _decode() async {
     dataTypeController.changeToFalse();
-
     if (encryptionKeyController.encryptionEnabled.value) {
       password = passwordController.text.trim();
     } else {
@@ -103,23 +107,31 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
         setState(() {
           isDecoding = true;
         });
-        decodedMessage = await Decode.decode_image_with_message(selectedImage!);
+        // decodedMessage = await Decode.decode_image_with_message(selectedImage!);
+        decodedMessage = await compute(getDecodedMessage, {
+          'image': selectedImage!,
+        });
 
         ///gettign AES keys
         String aesKey = await keyGenFunc(keyLength: 256, password: password!);
         String aesIV = await keyGenFunc(keyLength: 128, password: password!);
 
         /// Decrypting message
-        DecryptWithAES decryptWithAES = DecryptWithAES.text(
-            aesKey: aesKey, aesIV: aesIV, cipherText: decodedMessage);
-        String decryptedMessage = decryptWithAES.decryptMessage();
+
+        String decryptedMessage = await compute(decryptMessage, {
+          "aesKey": aesKey,
+          "aesIV": aesIV,
+          "decodedMessage": decodedMessage,
+        });
 
         /// decodedMessage ni UI da ham o'zgartirib chiqmaslik uchun uni decryptedMessage ga tenglashtirib qo'ydim
         setState(() {
           decodedMessage = decryptedMessage;
         });
         try {
-          decodedFile = await Decode.decode_image_with_file(selectedImage!);
+          decodedFile = await compute(getDecodedFile, {
+            'image': selectedImage!,
+          });
 
           /// converting File to Encrypted data type
           MyEncrypt.Encrypted encr = readEncryptedFromFile(decodedFile!.path);
@@ -135,6 +147,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
           if (extensions.containsKey(extensionNumber)) lst.removeLast();
           File decryptedFile = await createFileFromBytes(
               fileBytes: lst, fileExtension: extension!);
+
           decodedFile = decryptedFile;
 
           if (decodedFile != null) {
@@ -189,7 +202,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff2C3639),
+      backgroundColor: color3,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -199,7 +212,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                   padding: const EdgeInsets.only(right: 10, left: 10),
                   height: 55,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: color4,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -207,42 +220,37 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                       controller: passwordController,
                       obscureText: passwordIsVisible,
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(
-                          IconlyBold.lock,
-                          color: Colors.grey,
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              passwordIsVisible = !passwordIsVisible;
-                            });
-                          },
-                          icon: passwordIsVisible
-                              ? const Icon(
-                                  Icons.remove_red_eye,
-                                  color: Colors.grey,
-                                )
-                              : const Icon(
-                                  Icons.visibility_off,
-                                  color: Colors.grey,
-                                ),
-                        ),
-                        border: InputBorder.none,
-                        hintText: "Enter password",
-                      ),
+                          prefixIcon: const Icon(
+                            IconlyBold.lock,
+                            color: Colors.grey,
+                          ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                passwordIsVisible = !passwordIsVisible;
+                              });
+                            },
+                            icon: passwordIsVisible
+                                ? const Icon(
+                                    Icons.remove_red_eye,
+                                    color: Colors.grey,
+                                  )
+                                : const Icon(
+                                    Icons.visibility_off,
+                                    color: Colors.grey,
+                                  ),
+                          ),
+                          border: InputBorder.none,
+                          hintText: "Enter password",
+                          hintStyle: TextStyle(color: Colors.grey)),
                     ),
                   ),
                 )
-              : SizedBox.shrink()),
+              : const SizedBox.shrink()),
           isDecoding
-              ? const Text(
-                  "Waiting...",
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ).tr()
+              ? Container(
+                  padding: const EdgeInsets.all(10),
+                  child: const CircularProgressIndicator())
               : const SizedBox.shrink(),
           isSaving
               ? const CircularProgressIndicator()
@@ -267,7 +275,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                       const Text(
                         "File is empty",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: color5,
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
@@ -293,6 +301,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(13.0),
                                   child: Image.file(
+                                    height: 300,
                                     pickedImage!,
                                     fit: BoxFit.cover,
                                   ),
@@ -307,7 +316,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                         child: Text(
                           "Decoded data:",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: color5,
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                           ),
@@ -320,7 +329,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                                   const EdgeInsets.symmetric(horizontal: 20),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                color: const Color(0xff3F4E4F),
+                                color: color4,
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
@@ -337,14 +346,14 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                                             textAlign: TextAlign.justify,
                                             decodedMessage.toString(),
                                             style: const TextStyle(
-                                              color: Colors.white,
+                                              color: color5,
                                               fontSize: 15,
                                               //fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         ),
                                         const SizedBox(
-                                          height: 70,
+                                          height: 120,
                                         ),
                                       ],
                                     ),
@@ -376,6 +385,9 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
                               ],
                             )
                           : const SizedBox.shrink(),
+                      const SizedBox(
+                        height: 100,
+                      )
                     ],
                   ),
                 ),
@@ -386,7 +398,7 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
       floatingActionButton: Container(
         width: double.infinity,
         height: 60,
-        color: const Color(0xff3F4E4F),
+        color: color4,
         child: Row(
           //mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -397,14 +409,15 @@ class _DecodeViewState extends State<DecodeView> with TickerProviderStateMixin {
               },
               icon: const Icon(
                 Icons.attach_file_outlined,
-                color: Color(0xffDCD7C9),
+                color: color5,
               ),
             ),
             Expanded(child: Container()),
             Container(
               width: 100,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12), color: Colors.blue),
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.orange),
               child: IconButton(
                 /// decode file
                 onPressed: () {
